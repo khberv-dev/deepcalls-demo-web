@@ -104,7 +104,7 @@ export default function ContactModal({ contact, initial = {}, onClose, onDeleted
 
         save.mutate(isEdit ? { id: contact.id, ...body } : body, {
             onSuccess: (saved) => {
-                toastSuccess(isEdit ? 'Kontakt saqlandi' : 'Kontakt yaratildi')
+                toastSuccess(isEdit ? 'Lid saqlandi' : 'Lid yaratildi')
                 onClose()
                 if (!isEdit) onCreated?.(saved)
             },
@@ -114,7 +114,7 @@ export default function ContactModal({ contact, initial = {}, onClose, onDeleted
     const handleDelete = () => {
         deleteContact.mutate(contact.id, {
             onSuccess: () => {
-                toastSuccess('Kontakt oʻchirildi')
+                toastSuccess('Lid oʻchirildi')
                 onClose()
                 onDeleted?.()
             },
@@ -125,12 +125,12 @@ export default function ContactModal({ contact, initial = {}, onClose, onDeleted
 
     return (
         <Modal
-            title={isEdit ? 'Kontaktni tahrirlash' : 'Yangi kontakt'}
+            title={isEdit ? 'Lidni tahrirlash' : 'Yangi lid'}
             onClose={onClose}
             footer={
                 confirmDelete ? (
                     <>
-                        <span className="footer-note">Kontakt butunlay oʻchiriladi. Davom etasizmi?</span>
+                        <span className="footer-note">Lid butunlay oʻchiriladi. Davom etasizmi?</span>
                         <button type="button" className="button button--ghost" onClick={() => setConfirmDelete(false)}>
                             Yoʻq
                         </button>

@@ -632,40 +632,6 @@ select.input {
 .inline-icon { display: inline-flex; align-items: center; gap: 6px; }
 
 /* ==========================================================================
-   Tabs (segmented control)
-   ========================================================================== */
-
-.tabs {
-  display: inline-flex;
-  gap: 2px;
-  padding: 3px;
-  max-width: 100%;
-  overflow-x: auto;
-  background: var(--surface-3);
-  border-radius: var(--radius);
-}
-.tab {
-  display: inline-flex;
-  align-items: center;
-  height: 28px;
-  padding: 0 12px;
-  border: none;
-  border-radius: var(--radius-sm);
-  background: transparent;
-  color: var(--muted);
-  font: inherit;
-  font-size: 13px;
-  font-weight: 500;
-  white-space: nowrap;
-  cursor: pointer;
-  transition: background 0.12s, color 0.12s;
-}
-.tab:hover { color: var(--text); text-decoration: none; }
-.tab--active,
-.tab--active:hover { background: var(--surface); color: var(--text); font-weight: 600; box-shadow: var(--shadow-sm); }
-.tab--add { padding: 0 8px; }
-
-/* ==========================================================================
    Kanban
    ========================================================================== */
 
@@ -691,20 +657,13 @@ select.input {
   overflow: hidden;
   transition: border-color 0.12s, background 0.12s, box-shadow 0.12s;
 }
-.kanban-column::before {
-  content: '';
-  position: absolute;
-  inset: 0 0 auto;
-  height: 3px;
-  background: var(--stage-color, var(--border-strong));
-}
 .kanban-column--over { border-color: var(--accent); background: var(--accent-soft); box-shadow: var(--ring); }
 
 .kanban-column-header {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 14px 10px 8px 12px;
+  padding: 12px 10px 8px 12px;
   cursor: grab;
 }
 .kanban-column-title {
@@ -721,7 +680,7 @@ select.input {
 /* Actions float over the header on hover, so they never squeeze the stage name. */
 .kanban-column-actions {
   position: absolute;
-  top: 10px;
+  top: 8px;
   right: 8px;
   display: flex;
   gap: 2px;
@@ -741,6 +700,7 @@ select.input {
 .grip { flex: none; color: var(--subtle); margin-left: -4px; }
 
 .kanban-column-body {
+  flex: 1;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -778,6 +738,7 @@ select.input {
 }
 .kanban-card-footer .small { font-size: 11.5px; color: var(--subtle); }
 .kanban-empty {
+  margin: auto 0; /* vertically centered in an empty column */
   padding: 18px 8px;
   text-align: center;
   font-size: 12.5px;
@@ -859,20 +820,6 @@ select.input {
    Sources
    ========================================================================== */
 
-.source-list {
-  list-style: none;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 12px;
-}
-.source-item {
-  flex-direction: row;
-  align-items: center;
-  gap: 12px;
-  padding: 14px 12px 14px 14px;
-  transition: border-color 0.12s, box-shadow 0.12s;
-}
-.source-item:hover { border-color: var(--border-strong); box-shadow: var(--shadow-sm); }
 .source-icon {
   display: inline-flex;
   align-items: center;
@@ -885,8 +832,6 @@ select.input {
   color: var(--accent);
 }
 .source-icon-img { border-radius: 4px; object-fit: cover; }
-.source-info { display: flex; flex-direction: column; flex: 1; min-width: 0; line-height: 1.35; }
-.source-info a { font-size: 12.5px; }
 
 /* ==========================================================================
    Contact page
@@ -1144,3 +1089,189 @@ select.input {
 .country-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .country-option .muted { font-variant-numeric: tabular-nums; font-size: 12.5px; }
 .country-empty { padding: 10px 8px; color: var(--muted); font-size: 13px; }
+
+/* ==========================================================================
+   Leads page: heading with view toggle, board toolbar
+   ========================================================================== */
+
+.page-heading { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; min-width: 0; }
+
+.view-toggle {
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  background: var(--surface-3);
+  border-radius: var(--radius);
+}
+.view-toggle-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 12px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+.view-toggle-option:hover { color: var(--text); }
+.view-toggle-option--active,
+.view-toggle-option--active:hover { background: var(--surface); color: var(--text); font-weight: 600; box-shadow: var(--shadow-sm); }
+.view-toggle-option--active svg { color: var(--accent); }
+
+
+.filters-count { margin-left: auto; font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+.source-icon--sm { width: 30px; height: 30px; border-radius: var(--radius-sm); }
+.code {
+  display: inline-block;
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  color: var(--text-2);
+  font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+  font-size: 12px;
+}
+
+/* ==========================================================================
+   Select menu (pipeline picker)
+   ========================================================================== */
+
+.select-menu { position: relative; }
+.select-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: var(--control-h);
+  max-width: 260px;
+  padding: 0 10px 0 12px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow-xs);
+  color: var(--text);
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.12s, border-color 0.12s, box-shadow 0.12s;
+}
+.select-trigger:hover { background: var(--surface-2); }
+.select-trigger[aria-expanded='true'] { border-color: var(--accent); box-shadow: var(--ring); }
+.select-trigger-icon { flex: none; color: var(--accent); }
+.select-trigger-label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.select-trigger-chevron { flex: none; color: var(--muted); }
+
+.select-popover {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 40;
+  width: 280px;
+  padding: 6px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  animation: pop-in 0.12s ease-out;
+}
+.select-group-label {
+  display: block;
+  padding: 6px 8px 4px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--subtle);
+}
+.select-options { list-style: none; max-height: 280px; overflow-y: auto; }
+.select-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  height: 34px;
+  padding: 0 8px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 13.5px;
+  text-align: left;
+  cursor: pointer;
+}
+.select-option:hover { background: var(--surface-2); }
+.select-option-label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.select-option-meta { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.select-option-check { flex: none; color: var(--accent); visibility: hidden; }
+.select-option--active { font-weight: 600; }
+.select-option--active .select-option-check { visibility: visible; }
+.select-footer { margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--border); }
+.select-footer .select-option { color: var(--text-2); }
+.select-footer .select-option svg { color: var(--muted); }
+
+/* ==========================================================================
+   "New stage" column at the end of the board
+   ========================================================================== */
+
+.kanban-add-column {
+  flex: 0 0 280px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1.5px dashed var(--border-strong);
+  border-radius: var(--radius-lg);
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.12s, background 0.12s, color 0.12s;
+}
+.kanban-add-column svg {
+  padding: 6px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--surface);
+  box-shadow: var(--shadow-xs), inset 0 0 0 1px var(--border);
+}
+.kanban-add-column:hover:not(:disabled) { border-color: var(--accent); background: var(--accent-soft); color: var(--accent-text); }
+.kanban-add-column:hover:not(:disabled) svg { color: var(--accent); }
+.kanban-add-column:focus-visible { outline: none; box-shadow: var(--ring); }
+.kanban-add-column:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ==========================================================================
+   Manage pipelines modal
+   ========================================================================== */
+
+.manage-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+.manage-row { display: flex; flex-direction: column; gap: 4px; padding: 10px 12px; }
+.manage-row + .manage-row { border-top: 1px solid var(--border); }
+.manage-row:hover { background: #fafbfc; }
+.manage-row-main { display: flex; align-items: center; gap: 6px; min-height: 34px; }
+.manage-row-info { display: flex; flex-direction: column; flex: 1; min-width: 0; line-height: 1.35; }
+.manage-row-confirm { flex: 1; min-width: 0; font-size: 13.5px; color: var(--text-2); }
+.manage-row-main .input { flex: 1; }
+.manage-create { display: flex; gap: 8px; }
+.manage-create .input { flex: 1; }

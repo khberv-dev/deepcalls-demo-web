@@ -168,7 +168,7 @@ export default function UsersPage() {
             {modal?.type === 'delete' && (
                 <ConfirmDialog
                     title="Foydalanuvchini oʻchirish"
-                    message={`${fullName(modal.user)} (${modal.user.email}) va unga tegishli hamma narsa — kontaktlar, qoʻngʻiroqlar, yozuvlar, izohlar, voronkalar va manbalar — butunlay oʻchiriladi. Bu amalni qaytarib boʻlmaydi.`}
+                    message={`${fullName(modal.user)} (${modal.user.email}) va unga tegishli hamma narsa — lidlar, qoʻngʻiroqlar, yozuvlar, izohlar, voronkalar va manbalar — butunlay oʻchiriladi. Bu amalni qaytarib boʻlmaydi.`}
                     confirmLabel="Butunlay oʻchirish"
                     isPending={deleteUser.isPending}
                     error={deleteUser.error}

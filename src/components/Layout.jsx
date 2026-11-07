@@ -1,5 +1,5 @@
 import { NavLink, Outlet } from 'react-router'
-import { Contact, Kanban, LogOut, Settings, ShieldCheck, Tag, Users } from 'lucide-react'
+import { Kanban, LogOut, Settings, ShieldCheck, Tag, Users } from 'lucide-react'
 import Brand from './Brand.jsx'
 import { useLogout } from '../hooks/useAuth.js'
 import { usePermissions } from '../hooks/usePermissions.js'
@@ -11,8 +11,7 @@ const NAV_GROUPS = [
     {
         label: 'CRM',
         items: [
-            { to: '/pipelines', label: 'Voronka', icon: Kanban },
-            { to: '/contacts', label: 'Kontaktlar', icon: Contact },
+            { to: '/leads', label: 'Lidlar', icon: Kanban },
             { to: '/sources', label: 'Manbalar', icon: Tag },
         ],
     },

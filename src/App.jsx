@@ -1,15 +1,20 @@
-import { Navigate, Route, Routes } from 'react-router'
+import { Navigate, Route, Routes, useParams } from 'react-router'
 import Layout from './components/Layout.jsx'
 import { PublicOnly, RequireAuth, RequirePermission } from './components/RouteGuards.jsx'
 import ContactPage from './pages/ContactPage.jsx'
-import ContactsPage from './pages/ContactsPage.jsx'
 import LoginPage from './pages/LoginPage.jsx'
-import PipelinePage from './pages/PipelinePage.jsx'
+import LeadsPage from './pages/LeadsPage.jsx'
 import RegisterPage from './pages/RegisterPage.jsx'
 import RolesPage from './pages/RolesPage.jsx'
 import SettingsPage from './pages/SettingsPage.jsx'
 import SourcesPage from './pages/SourcesPage.jsx'
 import UsersPage from './pages/UsersPage.jsx'
+
+/** Old /contacts/:id links → /leads/:id */
+function ContactRedirect() {
+    const { contactId } = useParams()
+    return <Navigate to={`/leads/${contactId}`} replace/>
+}
 
 function App() {
     return (
@@ -20,11 +25,13 @@ function App() {
             </Route>
             <Route element={<RequireAuth/>}>
                 <Route element={<Layout/>}>
-                    <Route index element={<Navigate to="/pipelines" replace/>}/>
-                    <Route path="/pipelines" element={<PipelinePage/>}/>
-                    <Route path="/pipelines/:pipelineId" element={<PipelinePage/>}/>
-                    <Route path="/contacts" element={<ContactsPage/>}/>
-                    <Route path="/contacts/:contactId" element={<ContactPage/>}/>
+                    <Route index element={<Navigate to="/leads" replace/>}/>
+                    <Route path="/leads" element={<LeadsPage/>}/>
+                    <Route path="/leads/:contactId" element={<ContactPage/>}/>
+                    {/* Old URLs from before pipelines and contacts were merged into leads */}
+                    <Route path="/pipelines/*" element={<Navigate to="/leads?view=board" replace/>}/>
+                    <Route path="/contacts" element={<Navigate to="/leads?view=list" replace/>}/>
+                    <Route path="/contacts/:contactId" element={<ContactRedirect/>}/>
                     <Route path="/sources" element={<SourcesPage/>}/>
                     <Route path="/settings" element={<SettingsPage/>}/>
                     <Route element={<RequirePermission permission="canReadUser"/>}>
@@ -33,7 +40,7 @@ function App() {
                     <Route element={<RequirePermission permission="canReadRole"/>}>
                         <Route path="/roles" element={<RolesPage/>}/>
                     </Route>
-                    <Route path="*" element={<Navigate to="/pipelines" replace/>}/>
+                    <Route path="*" element={<Navigate to="/leads" replace/>}/>
                 </Route>
             </Route>
         </Routes>

@@ -66,7 +66,6 @@ export default function KanbanColumn({
     return (
         <section
             className={`kanban-column${dropTarget ? ' kanban-column--over' : ''}`}
-            style={{ '--stage-color': stage.color ?? undefined }}
             onDragOver={(e) => {
                 if (!accepts(e)) return
                 e.preventDefault()
@@ -104,7 +103,7 @@ export default function KanbanColumn({
                 <span className="count">{stage.contactsCount}</span>
                 {stage.type !== 'open' && <span className={`badge badge--${stage.type}`}>{STAGE_TYPE[stage.type]}</span>}
                 <div className="kanban-column-actions">
-                    <button className="icon-button" onClick={() => onAddContact(stage)} title="Kontakt qoʻshish">
+                    <button className="icon-button" onClick={() => onAddContact(stage)} title="Lid qoʻshish">
                         <Plus size={16} />
                     </button>
                     <button className="icon-button" onClick={() => onEditStage(stage)} title="Tahrirlash">
@@ -118,13 +117,13 @@ export default function KanbanColumn({
             <div className="kanban-column-body">
                 {isLoading && <p className="muted small">Yuklanmoqda…</p>}
                 {isError && <p className="error small">Yuklab boʻlmadi</p>}
-                {!isLoading && !items.length && <p className="kanban-empty">Kontaktlar yoʻq</p>}
+                {!isLoading && !items.length && <p className="kanban-empty">Lidlar yoʻq</p>}
                 {items.map((contact) => (
                     <ContactCard key={contact.id} contact={contact} stageId={stage.id} onOpen={onOpenContact} />
                 ))}
                 {hidden > 0 && (
-                    <Link className="link-button" to={`/contacts?pipelineId=${stage.pipelineId}&stageId=${stage.id}`}>
-                        Yana {hidden} ta kontakt
+                    <Link className="link-button" to={`/leads?view=list&pipelineId=${stage.pipelineId}&stageId=${stage.id}`}>
+                        Yana {hidden} ta lid
                     </Link>
                 )}
             </div>

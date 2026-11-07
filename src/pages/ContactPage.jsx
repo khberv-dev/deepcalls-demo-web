@@ -36,11 +36,11 @@ export default function ContactPage() {
     if (error) {
         return (
             <div className="page">
-                <Link to="/contacts" className="link-button">
-                    <ArrowLeft size={14} /> Kontaktlar
+                <Link to="/leads" className="link-button">
+                    <ArrowLeft size={14} /> Lidlar
                 </Link>
                 <p className="error">
-                    {error.response?.status === 404 ? 'Kontakt topilmadi' : getErrorMessage(error)}
+                    {error.response?.status === 404 ? 'Lid topilmadi' : getErrorMessage(error)}
                 </p>
             </div>
         )
@@ -51,7 +51,8 @@ export default function ContactPage() {
     const isOwn = contact.userId === userId
     const canWrite = isOwn || canWriteContact
     const pipeline = pipelines.find((p) => p.id === contact.stage?.pipelineId)
-    const backTo = pipeline ? `/pipelines/${pipeline.id}` : '/contacts'
+    // Back to the leads page (the view comes from the last one used), on this contact's pipeline if it's ours.
+    const backTo = pipeline ? `/leads?pipelineId=${pipeline.id}` : '/leads'
 
     return (
         <div className="page contact-page">

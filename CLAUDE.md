@@ -62,21 +62,29 @@ There is no test runner configured. If tests are needed, Vitest fits this Vite s
   - The Inter font, loaded from Google Fonts in `index.html`.
   - An indigo primary colour (`--accent: #4f46e5`).
   - All design values are CSS variables at the top of `src/index.css`: colours, status colours, shadows (`--shadow-xs` to `--shadow-lg`), corner radii and control heights (`--control-h: 34px`). Reuse them instead of hard-coding values.
-  - Kanban columns get their stage colour through the `--stage-color` CSS variable (a 3px bar on top). Column action buttons float over the header on hover, so they never squeeze the stage name.
+  - Kanban columns show their stage colour as a dot in the header. Column action buttons float over the header on hover, so they never squeeze the stage name. An empty column's "Lidlar yoʻq" card is centred vertically.
   - Toasts are dark with a coloured icon. The logo is the `Brand` component plus `public/favicon.svg`.
 
-- `src/pages/`: one component per route: login, register, the pipeline board (`/pipelines/:pipelineId`), the contacts list, the contact card (`/contacts/:contactId`), sources and settings.
+- `src/pages/`: one component per route:
+  - login and register;
+  - **leads** (`/leads`): contacts are called "lidlar" in the UI. The page has a Kanban / Roʻyxat toggle. The view is the `?view=board|list` URL parameter, falling back to the last view used (localStorage). `LeadsPage` renders `LeadsBoard` or `LeadsList` from `src/components/`. Both views use the `pipelineId` URL parameter: the board shows that pipeline, the list filters by it, so switching views keeps it.
+  - the lead card (`/leads/:contactId`);
+  - sources (shown as a table), users, roles and settings.
+  - Old `/pipelines/*` and `/contacts[/:id]` URLs redirect to `/leads`.
 - `src/components/`: shared pieces (`Layout`, `Modal`, `ConfirmDialog`, `Toaster`, `SourceIcon`) and the form modals (`ContactModal`, `StageModal`, `PipelineModal`, `SourceModal`). Each form modal handles both create and edit, depending on whether an existing entity is passed in.
 - **Route guards** (`src/components/RouteGuards.jsx`):
   - `RequireAuth` redirects to `/login` when there is no token.
   - `PublicOnly` sends signed-in users into the app.
   - After a successful login, the redirect also happens in `PublicOnly`, not in the login page: setting the token re-renders the guard right away, which unmounts the page.
-- **Kanban board** (`PipelinePage` + `KanbanColumn`):
+- **Kanban board** (`LeadsBoard` + `KanbanColumn`):
+  - The pipeline is picked with `PipelineSelect`, a custom dropdown in the page header. Its last entry, "Voronkalarni boshqarish", opens `PipelinesManagerModal` (create, rename, delete pipelines).
+  - New stages are added from the dashed "Yangi bosqich" column at the end of the board (at most 30).
+  - Popovers close on an outside click or Escape through `useDismiss` (`src/hooks/useDismiss.js`). It catches Escape before the modal does, so a popover inside a modal closes without closing the modal.
   - Each column loads its own cards with `useContacts({ stageId, limit: 100 })`, as the API doc recommends.
   - Drag and drop uses the native HTML5 API with two custom `dataTransfer` types, one for contact cards and one for column headers.
   - Moving a card uses `useMoveContact`, which updates the cached column lists and stage counts optimistically and rolls back on error.
-- **Contact card** (`ContactPage`): details, a quick stage selector and `CallsPanel` on the left; `CommentFeed` on the right, with the note composer, the call upload button and the timeline of notes and AI analyses. Clicking a kanban card or a contacts-table row opens this page.
-- **Contacts page:** filters and the page number are kept in the URL query string, so a kanban column can link to `/contacts?pipelineId=…&stageId=…`.
+- **Contact card** (`ContactPage`): details, a quick stage selector and `CallsPanel` on the left; `CommentFeed` on the right, with the note composer, the call upload button and the timeline of notes and AI analyses. Clicking a kanban card or a list row opens this page.
+- **List view:** filters and the page number are kept in the URL query string, so a kanban column can link to `/leads?view=list&pipelineId=…&stageId=…`.
 - **Errors:** mutation errors show inside the modal or form that started them. Errors from actions that have no form, such as drag and drop, show as toasts (`toastError` from `src/toast/toastStore.js`).
 - Forms that start from server data get their initial `useState` from props and are remounted with a `key` rather than synced in an effect. The `react-hooks` v7 lint rules flag setting state inside effects.
 

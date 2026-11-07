@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import { ChevronDown, Search } from 'lucide-react'
+import { useDismiss } from '../hooks/useDismiss.js'
 import {
     COUNTRIES,
     DEFAULT_COUNTRY,
@@ -16,24 +17,8 @@ function CountryPicker({ country, onSelect }) {
     const [query, setQuery] = useState('')
     const rootRef = useRef(null)
 
-    useEffect(() => {
-        if (!open) return undefined
-        const onPointerDown = (e) => {
-            if (!rootRef.current?.contains(e.target)) setOpen(false)
-        }
-        const onKeyDown = (e) => {
-            if (e.key === 'Escape') {
-                e.stopPropagation() // don't close the surrounding modal
-                setOpen(false)
-            }
-        }
-        document.addEventListener('pointerdown', onPointerDown)
-        document.addEventListener('keydown', onKeyDown, true)
-        return () => {
-            document.removeEventListener('pointerdown', onPointerDown)
-            document.removeEventListener('keydown', onKeyDown, true)
-        }
-    }, [open])
+    const close = useCallback(() => setOpen(false), [])
+    useDismiss(rootRef, open, close)
 
     const q = query.trim().toLowerCase().replace(/^\+/, '')
     const filtered = q

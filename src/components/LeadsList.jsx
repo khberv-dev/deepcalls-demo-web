@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router'
 import { ChevronLeft, ChevronRight, Plus, Search } from 'lucide-react'
-import ContactModal from '../components/ContactModal.jsx'
-import SourceIcon from '../components/SourceIcon.jsx'
-import Spinner from '../components/Spinner.jsx'
+import ContactModal from './ContactModal.jsx'
+import SourceIcon from './SourceIcon.jsx'
+import Spinner from './Spinner.jsx'
 import { getErrorMessage } from '../api/client.js'
 import { useContacts } from '../hooks/useContacts.js'
 import { useDebouncedValue } from '../hooks/useDebouncedValue.js'
@@ -15,7 +15,8 @@ import { formatDate, formatPhone, fullName, initials } from '../utils/format.js'
 
 const LIMIT = 20
 
-export default function ContactsPage() {
+/** List view of the leads page: search, filters and paging, all kept in the URL. */
+export default function LeadsList({ heading }) {
     // Filters live in the URL so they survive reloads and can be linked to (e.g. from a kanban column).
     const [searchParams, setSearchParams] = useSearchParams()
     const navigate = useNavigate()
@@ -70,12 +71,12 @@ export default function ContactsPage() {
     return (
         <div className="page">
             <header className="page-header">
-                <h1 className="page-title">
-                    Kontaktlar {data && <span className="muted">({data.total})</span>}
-                </h1>
-                <button className="button" onClick={() => setModal({})}>
-                    <Plus size={16} /> Yangi kontakt
-                </button>
+                {heading}
+                <div className="page-actions">
+                    <button className="button" onClick={() => setModal({})}>
+                        <Plus size={16} /> Yangi lid
+                    </button>
+                </div>
             </header>
 
             <div className="filters">
@@ -106,7 +107,7 @@ export default function ContactsPage() {
                             })
                         }
                     >
-                        <option value="me">Mening kontaktlarim</option>
+                        <option value="me">Mening lidlarim</option>
                         <option value="all">Barcha foydalanuvchilar</option>
                         {users?.items
                             .filter((u) => u.id !== userId)
@@ -159,12 +160,13 @@ export default function ContactsPage() {
                         className="link-button"
                         onClick={() => {
                             setSearch('')
-                            setSearchParams({}, { replace: true })
+                            setSearchParams({ view: 'list' }, { replace: true })
                         }}
                     >
                         Tozalash
                     </button>
                 )}
+                {data && <span className="filters-count">{data.total} ta lid</span>}
             </div>
 
             {isLoading ? (
@@ -173,7 +175,7 @@ export default function ContactsPage() {
                 <p className="error">{getErrorMessage(error)}</p>
             ) : !data.items.length ? (
                 <div className="empty-state">
-                    <p className="muted">{hasFilters ? 'Hech narsa topilmadi' : 'Hali kontaktlar yoʻq'}</p>
+                    <p className="muted">{hasFilters ? 'Hech narsa topilmadi' : 'Hali lidlar yoʻq'}</p>
                 </div>
             ) : (
                 <div className={`table-wrap${isFetching ? ' is-fetching' : ''}`}>
@@ -191,7 +193,7 @@ export default function ContactsPage() {
                         </thead>
                         <tbody>
                             {data.items.map((contact) => (
-                                <tr key={contact.id} onClick={() => navigate(`/contacts/${contact.id}`)} className="clickable">
+                                <tr key={contact.id} onClick={() => navigate(`/leads/${contact.id}`)} className="clickable">
                                     <td>
                                         <div className="name-cell">
                                             <span className="avatar avatar--sm">{initials(contact)}</span>
@@ -286,7 +288,7 @@ export default function ContactsPage() {
             {modal && (
                 <ContactModal
                     onClose={() => setModal(null)}
-                    onCreated={(contact) => navigate(`/contacts/${contact.id}`)}
+                    onCreated={(contact) => navigate(`/leads/${contact.id}`)}
                 />
             )}
         </div>
