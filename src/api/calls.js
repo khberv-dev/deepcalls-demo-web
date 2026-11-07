@@ -1,4 +1,4 @@
-import { api, cleanParams } from './client.js'
+import { api } from './client.js'
 
 /**
  * Upload a call recording for a contact. Returns at once with `status: "created"`; the AI analysis runs in the
@@ -10,12 +10,6 @@ export async function uploadCall({ contactId, file, onUploadProgress }) {
     formData.append('file', file)
     // No timeout: large recordings can take a while to upload.
     const { data } = await api.post(`/contacts/${contactId}/calls`, formData, { onUploadProgress, timeout: 0 })
-    return data
-}
-
-/** @returns {Promise<{ items: object[], total: number, page: number, limit: number }>} newest first */
-export async function getContactCalls(contactId, params) {
-    const { data } = await api.get(`/contacts/${contactId}/calls`, { params: cleanParams(params) })
     return data
 }
 

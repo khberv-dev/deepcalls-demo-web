@@ -1,6 +1,7 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { createContact, deleteContact, getContact, getContacts, updateContact } from '../api/contacts.js'
 import { queryKeys } from '../api/queryKeys.js'
+import { invalidateContactHistory } from './useHistory.js'
 
 /**
  * Paged contact list. Keeps the previous page visible while the next one loads.
@@ -43,6 +44,8 @@ export function useUpdateContact() {
         onSuccess: (contact) => {
             queryClient.setQueryData(queryKeys.contacts.detail(contact.id), contact)
             invalidateContactData(queryClient)
+            // A stage change adds a `pipeline` history entry.
+            invalidateContactHistory(queryClient, contact.id)
         },
     })
 }
@@ -123,7 +126,10 @@ export function useMoveContact() {
             context?.lists.forEach(([key, data]) => queryClient.setQueryData(key, data))
             context?.pipelines.forEach(([key, data]) => queryClient.setQueryData(key, data))
         },
-        onSettled: () => invalidateContactData(queryClient),
+        onSettled: (_data, _error, { id }) => {
+            invalidateContactData(queryClient)
+            invalidateContactHistory(queryClient, id)
+        },
     })
 }
 
@@ -132,10 +138,9 @@ export function useDeleteContact() {
     return useMutation({
         mutationFn: deleteContact,
         onSuccess: (_, id) => {
-            // Deleting a contact also deletes its calls and comments.
+            // Deleting a contact also deletes its calls, comments and history.
             queryClient.removeQueries({ queryKey: queryKeys.contacts.detail(id) })
-            queryClient.removeQueries({ queryKey: queryKeys.calls.list(id) })
-            queryClient.removeQueries({ queryKey: queryKeys.comments.list(id) })
+            queryClient.removeQueries({ queryKey: queryKeys.history.contact(id) })
             invalidateContactData(queryClient)
         },
     })

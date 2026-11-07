@@ -1,12 +1,7 @@
-import { api, cleanParams } from './client.js'
+import { api } from './client.js'
 
 // Comment types: `note` (written by the user) and `call_analysis` (created by the AI, `details` holds the analysis).
-
-/** @returns {Promise<{ items: object[], total: number, page: number, limit: number }>} newest first */
-export async function getContactComments(contactId, params) {
-    const { data } = await api.get(`/contacts/${contactId}/comments`, { params: cleanParams(params) })
-    return data
-}
+// Comments are listed through the contact's history (api/history.js); there's no list endpoint.
 
 /** Adds a `note`. AI comments can't be created through the API. */
 export async function createComment({ contactId, text }) {

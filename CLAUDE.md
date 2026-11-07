@@ -36,6 +36,8 @@ There is no test runner configured. If tests are needed, Vitest fits this Vite s
   - A contact's source, pipeline and stage refer to the owner's own records, which we can't list. So for someone else's contact, the source, pipeline and stage filters and fields are hidden: `ContactModal` gets `restrictPlacement`, and the stage is shown read-only.
   - Uploading, retrying and deleting calls on someone else's contact needs `canWriteContact`.
   - Comments by others are editable only with `canWriteComment`. Comment authors are shown through `useUserNames()`, which only works with `canReadUser`.
+- **New accounts start empty:** no pipelines, no sources and no role (only the admin created by the server's seed has data). The board shows "Avval voronka yarating".
+  - `POST /pipelines` requires `stages`, so every pipeline is created through `PipelineCreateForm`: a name plus an editable list of stages, pre-filled with a template. It is used by `PipelineModal` (empty state) and `PipelinesManagerModal`; renaming lives only in the manager.
 - **Server rules the client relies on:** the server rejects unknown fields with 400, so send only documented fields. It normalizes phones and emails, so always render what it returns. Deleting a stage or pipeline that still has contacts returns 409. To move a contact, send `PATCH /contacts/:id` with `{ stageId }`.
 - **Query client:** `QueryClient` is defined in `src/queryClient.js` and provided in `main.jsx`.
 - **Calls and AI analysis:** calls are uploaded per contact with `POST /contacts/:id/calls` (multipart, field `file`, no timeout). The response comes back immediately with `status: "created"`. A background job on the server analyzes the call, which then becomes `done` or `failed`. On `done`, the server adds a `call_analysis` comment to the contact; its `details` field holds the full analysis, which `src/components/AnalysisResult.jsx` renders. AI free text is in Uzbek; enum values stay in English.
@@ -43,10 +45,18 @@ There is no test runner configured. If tests are needed, Vitest fits this Vite s
 - **WebSocket** (`src/realtime/notifications.js` and `src/hooks/useRealtime.js`, mounted once in `Layout`):
   - The URL is `ws(s)://…/api/ws`, built from `VITE_API_URL`; `VITE_WS_URL` overrides it.
   - The token goes in the first message (`{ event: 'auth', data: { token } }`). Close code 4401 means the token is bad: log out and don't reconnect. Other disconnects reconnect with backoff.
-  - The `call.status_changed` event updates the call in the cache, adds the new comment to the feed and shows a toast.
-  - Events sent while disconnected are lost, so after a reconnect all calls and comments queries are reloaded.
-  - The server doesn't push the `created` → `analyzing` change, so `useContactCalls` also reloads every 15 s while any call is still pending.
-- **Comments:** `useContactComments` is an infinite query that pages 20 at a time. New comments, from the composer or the WebSocket, are added to the top of the first cached page, and `select` removes duplicates that shifted onto the next page.
+  - The `call.status_changed` event updates the `entity.status` of the call's history entry, adds `data.history` (the new AI comment's entry) to the top of the feed, and shows a toast.
+  - After a reconnect, all history queries are reloaded, because events sent while disconnected are lost.
+- **Contact history** (`GET /contacts/:id/history`) is the only way to list a contact's comments and calls; the old per-contact list endpoints are gone.
+  - Each item is `{ type: 'comment' | 'call' | 'pipeline', entityId, user, entity, createdAt }`, and `entity` is the current Comment, Call or StageChange.
+  - `useContactHistory(contactId, type)` (`src/hooks/useHistory.js`) is an infinite query keyed `['history', contactId, type]`, where `type` is `'all'` or one of the entry types.
+  - Edits and deletes update the cache through `patchHistoryEntity` / `removeHistoryEntity`, which match on `entityId`. Creating a note, uploading a call, or changing a contact's stage reloads that contact's history, because the server creates those entries.
+  - While any call is still pending, the list also refreshes every 15 s, because the server doesn't push the `created` → `analyzing` change.
+  - StageChange names are copies made at the time of the move, so they are shown as-is.
+  - `ContactChat` shows the whole history, all types together, as a chat:
+    - Oldest at the top, newest at the bottom, with day separators. The composer sits at the bottom: Enter sends a note, Shift+Enter adds a new line, the paperclip uploads a call.
+    - Your own notes and calls are right-aligned bubbles; others' are on the left with an avatar. AI analyses are on the left with an "AI tahlili" label. Stage changes are centred system lines. Calls render through `CallItem`.
+    - Scrolling: the chat opens at the bottom and follows new entries while you're at the bottom. Older pages load when you scroll near the top, and the view keeps its position when they're added.
 - **Phones:**
   - The server stores phones as digits only, with the country code (`998901234567`).
   - `src/utils/phone.js` has the country list, how to detect a number's country (the longest matching code wins; for the shared +7, a following 6 or 7 means Kazakhstan, otherwise Russia), the per-country formats and lengths, and `formatPhone` / `isValidPhone`.
@@ -83,7 +93,7 @@ There is no test runner configured. If tests are needed, Vitest fits this Vite s
   - Each column loads its own cards with `useContacts({ stageId, limit: 100 })`, as the API doc recommends.
   - Drag and drop uses the native HTML5 API with two custom `dataTransfer` types, one for contact cards and one for column headers.
   - Moving a card uses `useMoveContact`, which updates the cached column lists and stage counts optimistically and rolls back on error.
-- **Contact card** (`ContactPage`): details, a quick stage selector and `CallsPanel` on the left; `CommentFeed` on the right, with the note composer, the call upload button and the timeline of notes and AI analyses. Clicking a kanban card or a list row opens this page.
+- **Lead card** (`ContactPage`): details and a quick stage selector on the left; `ContactChat` on the right (there is no separate calls panel). Clicking a kanban card or a list row opens this page.
 - **List view:** filters and the page number are kept in the URL query string, so a kanban column can link to `/leads?view=list&pipelineId=…&stageId=…`.
 - **Errors:** mutation errors show inside the modal or form that started them. Errors from actions that have no form, such as drag and drop, show as toasts (`toastError` from `src/toast/toastStore.js`).
 - Forms that start from server data get their initial `useState` from props and are remounted with a `key` rather than synced in an effect. The `react-hooks` v7 lint rules flag setting state inside effects.

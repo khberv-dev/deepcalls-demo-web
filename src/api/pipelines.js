@@ -14,8 +14,8 @@ export async function getPipeline(id) {
 }
 
 /**
- * @param {{ name: string, stages?: { name: string, type?: 'open' | 'won' | 'lost', color?: string | null }[] }} body
- * Omitting `stages` creates the 5 default stages.
+ * @param {{ name: string, stages: { name: string, type?: 'open' | 'won' | 'lost', color?: string | null }[] }} body
+ * `stages` is required (1–30, in order): new accounts start with no pipelines and nothing is created by default.
  */
 export async function createPipeline(body) {
     const { data } = await api.post('/pipelines', body)

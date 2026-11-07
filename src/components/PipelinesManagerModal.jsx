@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { Check, Pencil, Plus, Trash2, X } from 'lucide-react'
 import Modal from './Modal.jsx'
+import PipelineCreateForm from './PipelineCreateForm.jsx'
 import { getErrorMessage } from '../api/client.js'
-import { useCreatePipeline, useDeletePipeline, useRenamePipeline } from '../hooks/usePipelines.js'
+import { useDeletePipeline, useRenamePipeline } from '../hooks/usePipelines.js'
 import { toastSuccess } from '../toast/toastStore.js'
 
 const leadCount = (pipeline) => pipeline.stages.reduce((sum, s) => sum + (s.contactsCount ?? 0), 0)
@@ -106,51 +107,64 @@ function PipelineRow({ pipeline, onDeleted }) {
     )
 }
 
-/** Create, rename and delete pipelines. New pipelines get the 5 default stages. */
+/** Rename and delete pipelines, or switch to creating a new one (name + stages). */
 export default function PipelinesManagerModal({ pipelines, onClose, onCreated, onDeleted }) {
-    const [name, setName] = useState('')
-    const create = useCreatePipeline()
+    const [creating, setCreating] = useState(!pipelines.length)
+    const [pending, setPending] = useState(false)
 
-    const submit = (e) => {
-        e.preventDefault()
-        const value = name.trim()
-        if (!value) return
-        create.mutate(
-            { name: value },
-            {
-                onSuccess: (pipeline) => {
-                    toastSuccess('Voronka yaratildi')
-                    setName('')
-                    onCreated?.(pipeline)
-                },
-            },
+    if (creating) {
+        return (
+            <Modal
+                title="Yangi voronka"
+                onClose={onClose}
+                footer={
+                    <>
+                        <button
+                            type="button"
+                            className="button button--ghost footer-left"
+                            onClick={() => (pipelines.length ? setCreating(false) : onClose())}
+                        >
+                            {pipelines.length ? 'Orqaga' : 'Bekor qilish'}
+                        </button>
+                        <button type="submit" form="manager-create-form" className="button" disabled={pending}>
+                            {pending ? 'Yaratilmoqda…' : 'Yaratish'}
+                        </button>
+                    </>
+                }
+            >
+                <PipelineCreateForm
+                    formId="manager-create-form"
+                    onPendingChange={setPending}
+                    onCreated={(pipeline) => {
+                        setCreating(false)
+                        onCreated?.(pipeline)
+                    }}
+                />
+            </Modal>
         )
     }
 
     return (
-        <Modal title="Voronkalarni boshqarish" onClose={onClose}>
+        <Modal
+            title="Voronkalarni boshqarish"
+            onClose={onClose}
+            footer={
+                <>
+                    <button type="button" className="button button--ghost" onClick={onClose}>
+                        Yopish
+                    </button>
+                    <button type="button" className="button" onClick={() => setCreating(true)}>
+                        <Plus size={16} /> Yangi voronka
+                    </button>
+                </>
+            }
+        >
             <ul className="manage-list">
                 {pipelines.map((p) => (
                     <PipelineRow key={p.id} pipeline={p} onDeleted={(id) => onDeleted?.(id)} />
                 ))}
             </ul>
-            <form className="manage-create" onSubmit={submit}>
-                <input
-                    className="input"
-                    placeholder="Yangi voronka nomi"
-                    value={name}
-                    maxLength={100}
-                    onChange={(e) => setName(e.target.value)}
-                />
-                <button type="submit" className="button" disabled={!name.trim() || create.isPending}>
-                    <Plus size={16} /> Qoʻshish
-                </button>
-            </form>
-            {create.error && <p className="error small">{getErrorMessage(create.error)}</p>}
-            <p className="muted small">
-                Yangi voronka standart bosqichlar bilan yaratiladi. Lidlari bor voronkani oʻchirib boʻlmaydi — avval
-                lidlarni koʻchiring.
-            </p>
+            <p className="muted small">Lidlari bor voronkani oʻchirib boʻlmaydi — avval lidlarni koʻchiring.</p>
         </Modal>
     )
 }

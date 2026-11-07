@@ -77,8 +77,12 @@ export default function LeadsBoard({ heading }) {
             <div className="page">
                 {header()}
                 <div className="empty-state">
-                    <h2 className="card-title">Voronkalar yoʻq</h2>
-                    <p className="muted">Lidlarni bosqichlar boʻyicha boshqarish uchun voronka yarating.</p>
+                    <h2 className="card-title">Avval voronka yarating</h2>
+                    <p className="muted">
+                        Voronka — bu lidlar oʻtadigan bosqichlar ketma-ketligi (masalan: Yangi → Bogʻlanildi → Sotildi).
+                        <br />
+                        Voronka yaratilgach, lidlarni shu yerda kanban koʻrinishida boshqarasiz.
+                    </p>
                     <button className="button" onClick={openNewPipeline}>
                         <Plus size={16} /> Voronka yaratish
                     </button>

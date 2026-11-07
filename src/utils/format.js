@@ -45,3 +45,28 @@ export const STAGE_COLORS = ['#3B82F6', '#8B5CF6', '#F59E0B', '#22C55E', '#EF444
 
 // Icon names the source form offers (rendered by <SourceIcon/>).
 export const ICON_PRESETS = ['phone', 'instagram', 'telegram', 'globe', 'users', 'facebook', 'youtube', 'whatsapp', 'mail']
+
+/** hh:mm */
+export function formatTime(iso) {
+    const d = new Date(iso)
+    if (Number.isNaN(d.getTime())) return ''
+    return `${pad(d.getHours())}:${pad(d.getMinutes())}`
+}
+
+const dayKey = (d) => `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`
+
+/** Calendar-day key for grouping chat messages. */
+export function dayOf(iso) {
+    return dayKey(new Date(iso))
+}
+
+/** "Bugun" / "Kecha" / dd.mm.yyyy, for chat day separators. */
+export function formatDayLabel(iso) {
+    const d = new Date(iso)
+    const today = new Date()
+    const yesterday = new Date(today)
+    yesterday.setDate(today.getDate() - 1)
+    if (dayKey(d) === dayKey(today)) return 'Bugun'
+    if (dayKey(d) === dayKey(yesterday)) return 'Kecha'
+    return formatDate(iso)
+}

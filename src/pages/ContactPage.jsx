@@ -1,8 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import { ArrowLeft, Mail, Pencil, Phone } from 'lucide-react'
-import CallsPanel from '../components/CallsPanel.jsx'
-import CommentFeed from '../components/CommentFeed.jsx'
+import ContactChat from '../components/ContactChat.jsx'
 import ContactModal from '../components/ContactModal.jsx'
 import SourceIcon from '../components/SourceIcon.jsx'
 import Spinner from '../components/Spinner.jsx'
@@ -22,7 +21,7 @@ function InfoRow({ label, children }) {
     )
 }
 
-/** amoCRM-style contact card: details and calls on the left, the timeline (notes + AI analyses) on the right. */
+/** Lead (contact) page: details on the left, the whole history as a chat on the right. */
 export default function ContactPage() {
     const { contactId } = useParams()
     const navigate = useNavigate()
@@ -150,10 +149,9 @@ export default function ContactPage() {
                         </InfoRow>
                     </section>
 
-                    <CallsPanel contactId={contact.id} canWrite={canWrite} />
                 </aside>
 
-                <CommentFeed contact={contact} canUpload={canWrite} />
+                <ContactChat contact={contact} canWrite={canWrite} />
             </div>
 
             {editing && (

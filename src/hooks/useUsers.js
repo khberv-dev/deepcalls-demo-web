@@ -53,8 +53,7 @@ export function useDeleteUser() {
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: queryKeys.users.all })
             queryClient.invalidateQueries({ queryKey: queryKeys.contacts.all })
-            queryClient.invalidateQueries({ queryKey: queryKeys.calls.all })
-            queryClient.invalidateQueries({ queryKey: queryKeys.comments.all })
+            queryClient.invalidateQueries({ queryKey: queryKeys.history.all })
         },
     })
 }

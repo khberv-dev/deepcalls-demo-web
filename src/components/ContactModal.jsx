@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router'
 import { Plus, Trash2, X } from 'lucide-react'
 import Modal from './Modal.jsx'
 import PhoneInput from './PhoneInput.jsx'
@@ -228,6 +229,11 @@ export default function ContactModal({ contact, initial = {}, onClose, onDeleted
                                     </option>
                                 ))}
                             </select>
+                            {!sources.length && (
+                                <span className="muted small">
+                                    Manbalar yoʻq — <Link to="/sources" onClick={onClose}>manba qoʻshing</Link>
+                                </span>
+                            )}
                         </label>
 
                         <div className="grid-2">
@@ -245,6 +251,7 @@ export default function ContactModal({ contact, initial = {}, onClose, onDeleted
                                         </option>
                                     ))}
                                 </select>
+                                {!pipelines.length && <span className="muted small">Voronkalar yoʻq — ularni “Lidlar” sahifasida yarating.</span>}
                             </label>
                             <label className="field">
                                 <span className="field-label">Bosqich</span>

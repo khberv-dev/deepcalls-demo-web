@@ -23,12 +23,10 @@ export const queryKeys = {
         list: (params) => ['contacts', 'list', params],
         detail: (id) => ['contacts', 'detail', id],
     },
-    calls: {
-        all: ['calls'],
-        list: (contactId) => ['calls', 'list', contactId],
-    },
-    comments: {
-        all: ['comments'],
-        list: (contactId) => ['comments', 'list', contactId],
+    // Contact history (comments, calls, stage changes). `type` is 'all' or one entry type.
+    history: {
+        all: ['history'],
+        contact: (contactId) => ['history', contactId],
+        list: (contactId, type = 'all') => ['history', contactId, type],
     },
 }

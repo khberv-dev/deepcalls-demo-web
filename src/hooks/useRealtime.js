@@ -6,17 +6,16 @@ import { connectNotifications } from '../realtime/notifications.js'
 import { toast } from '../toast/toastStore.js'
 import { fullName } from '../utils/format.js'
 import { useAuthToken } from './useAuth.js'
-import { patchCachedCall } from './useCalls.js'
-import { prependCachedComment } from './useComments.js'
+import { patchHistoryEntity, prependHistoryItem } from './useHistory.js'
 
-function handleCallStatusChanged(queryClient, { callId, contactId, status, error, comment }) {
-    const found = patchCachedCall(queryClient, contactId, callId, {
+function handleCallStatusChanged(queryClient, { callId, contactId, status, error, comment, history }) {
+    // The call's own entry shows its current status; on success the new AI comment's entry goes on top.
+    patchHistoryEntity(queryClient, contactId, callId, {
         status,
         error,
         ...(status === 'done' ? { analyzedAt: comment?.createdAt ?? new Date().toISOString() } : {}),
     })
-    if (!found) queryClient.invalidateQueries({ queryKey: queryKeys.calls.list(contactId) })
-    if (comment) prependCachedComment(queryClient, comment)
+    if (history) prependHistoryItem(queryClient, history)
 
     const contact = queryClient.getQueryData(queryKeys.contacts.detail(contactId))
     const who = contact ? `${fullName(contact)}: ` : ''
@@ -35,11 +34,9 @@ export function useRealtimeNotifications() {
             onEvent: (event, data) => {
                 if (event === 'call.status_changed') handleCallStatusChanged(queryClient, data)
             },
-            // Events sent while disconnected are lost: after a reconnect, reload calls and comments.
+            // Events sent while disconnected are lost: after a reconnect, reload history.
             onReady: (isReconnect) => {
-                if (!isReconnect) return
-                queryClient.invalidateQueries({ queryKey: queryKeys.calls.all })
-                queryClient.invalidateQueries({ queryKey: queryKeys.comments.all })
+                if (isReconnect) queryClient.invalidateQueries({ queryKey: queryKeys.history.all })
             },
             onUnauthorized: clearToken,
         })
