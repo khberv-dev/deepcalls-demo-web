@@ -51,7 +51,14 @@ There is no test runner configured. If tests are needed, Vitest fits this Vite s
 
 ## UI structure
 
-- **Look:** light theme only, styled after amoCRM: a dark sidebar, a gray workspace, gray panels (`--surface-2`) for kanban columns, stat tiles, the filter bar and table headers, white cards on top, small corner radii and a dense layout (13.5px base font, 30px-tall buttons and inputs). The primary colour is `--accent`. Each kanban column header gets its stage colour through the `--stage-color` CSS variable.
+- **Look:** light theme with a modern CRM style (in the vein of Attio, Linear and HubSpot):
+  - A white sidebar with grouped navigation (CRM / Boshqaruv) on a `#f7f8fa` page background.
+  - White cards with hairline borders and soft shadows.
+  - The Inter font, loaded from Google Fonts in `index.html`.
+  - An indigo primary colour (`--accent: #4f46e5`).
+  - All design values are CSS variables at the top of `src/index.css`: colours, status colours, shadows (`--shadow-xs` to `--shadow-lg`), corner radii and control heights (`--control-h: 34px`). Reuse them instead of hard-coding values.
+  - Kanban columns get their stage colour through the `--stage-color` CSS variable (a 3px bar on top). Column action buttons float over the header on hover, so they never squeeze the stage name.
+  - Toasts are dark with a coloured icon. The logo is the `Brand` component plus `public/favicon.svg`.
 
 - `src/pages/`: one component per route: login, register, the pipeline board (`/pipelines/:pipelineId`), the contacts list, the contact card (`/contacts/:contactId`), sources and settings.
 - `src/components/`: shared pieces (`Layout`, `Modal`, `ConfirmDialog`, `Toaster`, `SourceIcon`) and the form modals (`ContactModal`, `StageModal`, `PipelineModal`, `SourceModal`). Each form modal handles both create and edit, depending on whether an existing entity is passed in.

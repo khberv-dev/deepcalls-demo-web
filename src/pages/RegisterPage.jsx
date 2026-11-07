@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router'
+import Brand from '../components/Brand.jsx'
 import { getErrorMessage } from '../api/client.js'
 import { useRegister } from '../hooks/useAuth.js'
 
@@ -18,8 +19,11 @@ export default function RegisterPage() {
     return (
         <div className="auth-page">
             <form className="card auth-card" onSubmit={handleSubmit}>
-                <div className="brand">DeepCalls</div>
-                <h1 className="card-title">Roʻyxatdan oʻtish</h1>
+                <Brand />
+                <div className="auth-heading">
+                    <h1 className="auth-title">Roʻyxatdan oʻtish</h1>
+                    <p className="muted">Bir necha soniyada CRM hisobini yarating</p>
+                </div>
                 <div className="grid-2">
                     <label className="field">
                         <span className="field-label">Ism *</span>

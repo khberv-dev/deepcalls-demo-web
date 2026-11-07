@@ -98,7 +98,8 @@ export default function KanbanColumn({
                 }}
                 title="Ustunni sudrab joyini oʻzgartiring"
             >
-                <GripVertical size={14} className="muted grip" aria-hidden="true" />
+                <GripVertical size={14} className="grip" aria-hidden="true" />
+                <span className="stage-dot" style={{ background: stage.color ?? 'var(--border-strong)' }} />
                 <span className="kanban-column-title">{stage.name}</span>
                 <span className="count">{stage.contactsCount}</span>
                 {stage.type !== 'open' && <span className={`badge badge--${stage.type}`}>{STAGE_TYPE[stage.type]}</span>}

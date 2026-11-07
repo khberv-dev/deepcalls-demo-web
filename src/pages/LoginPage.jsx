@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link, useLocation } from 'react-router'
+import Brand from '../components/Brand.jsx'
 import { getErrorMessage } from '../api/client.js'
 import { useLogin } from '../hooks/useAuth.js'
 
@@ -18,8 +19,11 @@ export default function LoginPage() {
     return (
         <div className="auth-page">
             <form className="card auth-card" onSubmit={handleSubmit}>
-                <div className="brand">DeepCalls</div>
-                <h1 className="card-title">Tizimga kirish</h1>
+                <Brand />
+                <div className="auth-heading">
+                    <h1 className="auth-title">Tizimga kirish</h1>
+                    <p className="muted">Hisobingizga kiring va ishni davom ettiring</p>
+                </div>
                 <label className="field">
                     <span className="field-label">Email</span>
                     <input
