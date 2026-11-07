@@ -1,14 +1,17 @@
 import { useState } from 'react'
 import { Plus, Trash2, X } from 'lucide-react'
 import Modal from './Modal.jsx'
+import PhoneInput from './PhoneInput.jsx'
 import { getErrorMessage } from '../api/client.js'
 import { useCreateContact, useDeleteContact, useUpdateContact } from '../hooks/useContacts.js'
 import { usePipelines } from '../hooks/usePipelines.js'
 import { useSources } from '../hooks/useSources.js'
 import { toastSuccess } from '../toast/toastStore.js'
-import { formatDateTime, formatPhone } from '../utils/format.js'
+import { formatDateTime } from '../utils/format.js'
+import { isValidPhone } from '../utils/phone.js'
 
-function ListInput({ label, values, onChange, type, placeholder }) {
+/** A growable list of inputs. `renderInput({ value, onChange })` overrides the plain text input. */
+function ListInput({ label, values, onChange, type, placeholder, renderInput }) {
     const update = (index, value) => onChange(values.map((v, i) => (i === index ? value : v)))
     const remove = (index) => onChange(values.length === 1 ? [''] : values.filter((_, i) => i !== index))
 
@@ -17,13 +20,17 @@ function ListInput({ label, values, onChange, type, placeholder }) {
             <span className="field-label">{label}</span>
             {values.map((value, index) => (
                 <div key={index} className="input-row">
-                    <input
-                        className="input"
-                        type={type}
-                        value={value}
-                        placeholder={placeholder}
-                        onChange={(e) => update(index, e.target.value)}
-                    />
+                    {renderInput ? (
+                        renderInput({ value, onChange: (v) => update(index, v) })
+                    ) : (
+                        <input
+                            className="input"
+                            type={type}
+                            value={value}
+                            placeholder={placeholder}
+                            onChange={(e) => update(index, e.target.value)}
+                        />
+                    )}
                     <button type="button" className="icon-button" onClick={() => remove(index)} aria-label="Olib tashlash">
                         <X size={16} />
                     </button>
@@ -54,14 +61,15 @@ export default function ContactModal({ contact, initial = {}, onClose, onDeleted
         firstName: contact?.firstName ?? initial.firstName ?? '',
         lastName: contact?.lastName ?? '',
         middleName: contact?.middleName ?? '',
-        // The server keeps digits only; show them formatted for editing (any formatting is accepted back).
-        phones: contact?.phones?.length ? contact.phones.map(formatPhone) : [''],
+        // Digits with country code, as the server stores them; <PhoneInput/> splits country and number.
+        phones: contact?.phones?.length ? contact.phones : [''],
         emails: contact?.emails?.length ? contact.emails : [''],
         sourceId: contact?.sourceId ?? initial.sourceId ?? '',
         pipelineId: contact?.stage?.pipelineId ?? initial.pipelineId ?? '',
         stageId: contact?.stageId ?? initial.stageId ?? '',
     }))
     const [confirmDelete, setConfirmDelete] = useState(false)
+    const [phoneError, setPhoneError] = useState(null)
 
     const createContact = useCreateContact()
     const updateContact = useUpdateContact()
@@ -73,11 +81,17 @@ export default function ContactModal({ contact, initial = {}, onClose, onDeleted
 
     const handleSubmit = (e) => {
         e.preventDefault()
+        const phones = form.phones.filter(Boolean)
+        if (!phones.every(isValidPhone)) {
+            setPhoneError('Telefon raqami toʻliq emas yoki notoʻgʻri')
+            return
+        }
+        setPhoneError(null)
         const body = {
             firstName: form.firstName.trim(),
             lastName: form.lastName.trim() || null,
             middleName: form.middleName.trim() || null,
-            phones: form.phones.map((p) => p.trim()).filter(Boolean),
+            phones,
             emails: form.emails.map((m) => m.trim()).filter(Boolean),
         }
         if (!restrictPlacement) {
@@ -186,10 +200,12 @@ export default function ContactModal({ contact, initial = {}, onClose, onDeleted
                 <div className="grid-2">
                     <ListInput
                         label="Telefonlar"
-                        type="tel"
-                        placeholder="+998 90 123 45 67"
                         values={form.phones}
-                        onChange={set('phones')}
+                        onChange={(phones) => {
+                            setPhoneError(null)
+                            set('phones')(phones)
+                        }}
+                        renderInput={({ value, onChange }) => <PhoneInput value={value} onChange={onChange} />}
                     />
                     <ListInput
                         label="Email"
@@ -255,6 +271,7 @@ export default function ContactModal({ contact, initial = {}, onClose, onDeleted
                         Yaratilgan: {formatDateTime(contact.createdAt)} · Yangilangan: {formatDateTime(contact.updatedAt)}
                     </p>
                 )}
+                {phoneError && <p className="error">{phoneError}</p>}
                 {error && <p className="error">{getErrorMessage(error)}</p>}
             </form>
         </Modal>

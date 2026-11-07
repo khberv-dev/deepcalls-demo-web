@@ -47,7 +47,12 @@ There is no test runner configured. If tests are needed, Vitest fits this Vite s
   - Events sent while disconnected are lost, so after a reconnect all calls and comments queries are reloaded.
   - The server doesn't push the `created` → `analyzing` change, so `useContactCalls` also reloads every 15 s while any call is still pending.
 - **Comments:** `useContactComments` is an infinite query that pages 20 at a time. New comments, from the composer or the WebSocket, are added to the top of the first cached page, and `select` removes duplicates that shifted onto the next page.
-- **Phones:** the server stores phones as digits only (`998901234567`). Always display them through `formatPhone` (`src/utils/format.js`), which shows `+998 90 123 45 67`.
+- **Phones:**
+  - The server stores phones as digits only, with the country code (`998901234567`).
+  - `src/utils/phone.js` has the country list, how to detect a number's country (the longest matching code wins; for the shared +7, a following 6 or 7 means Kazakhstan, otherwise Russia), the per-country formats and lengths, and `formatPhone` / `isValidPhone`.
+  - Always display phones through `formatPhone`, which shows `+998 90 123 45 67`.
+  - In forms, use `<PhoneInput/>`: a country picker (Uzbekistan by default) plus the number field. Its value is the digit string the server expects. Pasting `+…` or `00…` switches the country automatically.
+  - `ContactModal` blocks saving while any number is incomplete.
 
 ## UI structure
 

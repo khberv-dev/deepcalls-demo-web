@@ -31,18 +31,8 @@ export function formatDateTime(iso) {
     return `${formatDate(iso)} ${pad(d.getHours())}:${pad(d.getMinutes())}`
 }
 
-/**
- * The server stores phones as digits only ("998901234567"). Display with "+" and grouping:
- * Uzbek numbers as "+998 90 123 45 67", anything else as "+<digits>".
- */
-export function formatPhone(digits) {
-    if (!digits) return ''
-    const d = String(digits).replace(/\D/g, '')
-    if (d.length === 12 && d.startsWith('998')) {
-        return `+998 ${d.slice(3, 5)} ${d.slice(5, 8)} ${d.slice(8, 10)} ${d.slice(10)}`
-    }
-    return `+${d}`
-}
+// Phone display lives in ./phone.js (country-aware); re-exported here for existing imports.
+export { formatPhone } from './phone.js'
 
 export function formatSize(bytes) {
     if (bytes == null) return ''
