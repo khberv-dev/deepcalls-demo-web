@@ -17,6 +17,8 @@ function useSignIn(mutationFn) {
             queryClient.clear() // drop anything cached for a previous user
             setToken(accessToken)
             queryClient.setQueryData(queryKeys.me, user)
+            // The auth response may not carry the role/permissions; GET /user/me always does.
+            queryClient.invalidateQueries({ queryKey: queryKeys.me })
         },
     })
 }

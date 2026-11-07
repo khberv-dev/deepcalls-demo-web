@@ -768,3 +768,24 @@ a:hover { text-decoration: underline; }
 .feed-edit { display: flex; flex-direction: column; gap: 6px; }
 .feed-empty { padding: 20px 8px; }
 .feed-more { align-self: center; }
+
+/* ---------- Users & roles ---------- */
+
+.strong-plain { font-weight: 600; }
+.badge--system { color: var(--text); background: var(--surface-2); }
+.icon-button:disabled { opacity: 0.35; cursor: not-allowed; }
+.icon-button:disabled:hover { background: transparent; color: var(--muted); }
+
+.row-actions { width: 1%; text-align: right; }
+.row-actions .icon-button { width: 24px; height: 24px; }
+
+.th-group { text-align: center !important; border-left: 1px solid var(--border); }
+.th-sub { text-align: center !important; font-size: 0.68rem !important; border-left: 1px solid var(--border); }
+.td-flag { text-align: center; border-left: 1px solid var(--surface-2); }
+.flag { color: var(--surface-3); vertical-align: middle; }
+.flag--on { color: var(--success); }
+
+.perm-table { border: 1px solid var(--border); border-radius: var(--radius-lg); border-collapse: separate; border-spacing: 0; overflow: hidden; }
+.perm-table td { white-space: normal; vertical-align: top; }
+.check { display: flex; align-items: flex-start; gap: 6px; cursor: pointer; }
+.check input { margin-top: 2px; accent-color: var(--accent); }

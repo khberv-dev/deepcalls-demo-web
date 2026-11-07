@@ -5,7 +5,14 @@ import { useAuthToken } from './useAuth.js'
 
 export function useMe() {
     const token = useAuthToken()
-    return useQuery({ queryKey: queryKeys.me, queryFn: getMe, enabled: !!token })
+    // Permissions can change at any time (an admin edits a role), so refresh on focus and every few minutes.
+    return useQuery({
+        queryKey: queryKeys.me,
+        queryFn: getMe,
+        enabled: !!token,
+        refetchOnWindowFocus: true,
+        refetchInterval: 5 * 60_000,
+    })
 }
 
 export function useUpdateMe() {

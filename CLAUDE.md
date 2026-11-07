@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project state
 
-Vite + React 19 app (plain JavaScript/JSX, not TypeScript): the web client for the DeepCalls CRM backend (sources, pipelines with stages, contacts, call recordings analyzed by AI, and comments). Routing uses React Router (`react-router` v8, declarative `<Routes>` in `src/App.jsx`) and icons come from `lucide-react`. There's no UI kit or CSS framework: all styles are plain CSS in the single `src/index.css`, using CSS variables and BEM-ish class names (`.button--ghost`, `.kanban-column--over`). The interface language is Uzbek (Latin script, using `ʻ`/`ʼ` for oʻ, gʻ and the tutuq belgisi). Translations of enum values from the API (sentiment, level, speaker, intent category, call status, stage type, language) live in `src/labels.js`.
+Vite + React 19 app (plain JavaScript/JSX, not TypeScript): the web client for the DeepCalls CRM backend (sources, pipelines with stages, contacts, call recordings analyzed by AI, comments, users and roles). Routing uses React Router (`react-router` v8, declarative `<Routes>` in `src/App.jsx`) and icons come from `lucide-react`. There's no UI kit or CSS framework: all styles are plain CSS in the single `src/index.css`, using CSS variables and BEM-ish class names (`.button--ghost`, `.kanban-column--over`). The interface language is Uzbek (Latin script, using `ʻ`/`ʼ` for oʻ, gʻ and the tutuq belgisi). Translations of enum values from the API (sentiment, level, speaker, intent category, call status, stage type, language) live in `src/labels.js`.
 
 ## Commands
 
@@ -25,6 +25,17 @@ There is no test runner configured. If tests are needed, Vitest fits this Vite s
   - Components only use the hooks.
   - `src/api/queryKeys.js`: all query keys. Contact mutations invalidate both contacts and pipelines, because pipelines carry `contactsCount` per stage. Pipeline and stage mutations return the whole pipeline, which is written straight into the cache.
 - **Auth:** `src/auth/tokenStore.js` keeps the access token in memory and in localStorage. Components read it with `useAuthToken()` (from `src/hooks/useAuth.js`). There is no refresh token and no logout endpoint: logging out just clears the token. Any 401 (other than from `/auth/*`) clears the token, and clearing the token clears the query cache (`src/queryClient.js`).
+- **Roles and permissions:**
+  - A user has zero or one role. A role holds read and write flags for `User`, `Role`, `Contact` and `Comment`, and write implies read.
+  - Your own records are always accessible; the flags only grant access to other users' records. Pipelines and sources are always private to their owner.
+  - `usePermissions()` (`src/hooks/usePermissions.js`) reads `permissions` from `GET /user/me`. It is only for showing and hiding UI; the server enforces everything and answers 403 or 404.
+  - `/user/me` is reloaded on window focus and every 5 minutes, because an admin can change a role at any time.
+  - `RequirePermission` guards `/users` (`canReadUser`) and `/roles` (`canReadRole`).
+- **Other users' contacts:**
+  - `GET /contacts?owner=me|all|<userId>`; anything other than `me` needs `canReadContact`.
+  - A contact's source, pipeline and stage refer to the owner's own records, which we can't list. So for someone else's contact, the source, pipeline and stage filters and fields are hidden: `ContactModal` gets `restrictPlacement`, and the stage is shown read-only.
+  - Uploading, retrying and deleting calls on someone else's contact needs `canWriteContact`.
+  - Comments by others are editable only with `canWriteComment`. Comment authors are shown through `useUserNames()`, which only works with `canReadUser`.
 - **Server rules the client relies on:** the server rejects unknown fields with 400, so send only documented fields. It normalizes phones and emails, so always render what it returns. Deleting a stage or pipeline that still has contacts returns 409. To move a contact, send `PATCH /contacts/:id` with `{ stageId }`.
 - **Query client:** `QueryClient` is defined in `src/queryClient.js` and provided in `main.jsx`.
 - **Calls and AI analysis:** calls are uploaded per contact with `POST /contacts/:id/calls` (multipart, field `file`, no timeout). The response comes back immediately with `status: "created"`. A background job on the server analyzes the call, which then becomes `done` or `failed`. On `done`, the server adds a `call_analysis` comment to the contact; its `details` field holds the full analysis, which `src/components/AnalysisResult.jsx` renders. AI free text is in Uzbek; enum values stay in English.

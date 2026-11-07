@@ -1,6 +1,7 @@
 import { NavLink, Outlet } from 'react-router'
-import { Contact, Kanban, LogOut, Settings, Tag } from 'lucide-react'
+import { Contact, Kanban, LogOut, Settings, ShieldCheck, Tag, Users } from 'lucide-react'
 import { useLogout } from '../hooks/useAuth.js'
+import { usePermissions } from '../hooks/usePermissions.js'
 import { useRealtimeNotifications } from '../hooks/useRealtime.js'
 import { useMe } from '../hooks/useUser.js'
 import { fullName, initials } from '../utils/format.js'
@@ -9,6 +10,8 @@ const NAV = [
     { to: '/pipelines', label: 'Voronka', icon: Kanban },
     { to: '/contacts', label: 'Kontaktlar', icon: Contact },
     { to: '/sources', label: 'Manbalar', icon: Tag },
+    { to: '/users', label: 'Foydalanuvchilar', icon: Users, permission: 'canReadUser' },
+    { to: '/roles', label: 'Rollar', icon: ShieldCheck, permission: 'canReadRole' },
     { to: '/settings', label: 'Sozlamalar', icon: Settings },
 ]
 
@@ -16,6 +19,7 @@ export default function Layout() {
     const { data: me } = useMe()
     const logout = useLogout()
     useRealtimeNotifications()
+    const permissions = usePermissions()
     const name = fullName(me)
 
     return (
@@ -23,7 +27,7 @@ export default function Layout() {
             <aside className="sidebar">
                 <div className="brand">DeepCalls</div>
                 <nav className="nav">
-                    {NAV.map(({ to, label, icon: Icon }) => (
+                    {NAV.filter((item) => !item.permission || permissions[item.permission]).map(({ to, label, icon: Icon }) => (
                         <NavLink key={to} to={to} className={({ isActive }) => `nav-link${isActive ? ' nav-link--active' : ''}`}>
                             <Icon size={18} aria-hidden="true" />
                             <span>{label}</span>
@@ -34,7 +38,7 @@ export default function Layout() {
                     <span className="avatar">{initials(name) || '?'}</span>
                     <div className="sidebar-user-info">
                         <span className="sidebar-user-name">{name || '…'}</span>
-                        <span className="muted small">{me?.email}</span>
+                        <span className="muted small">{me?.role?.name ?? me?.email}</span>
                     </div>
                     <button className="icon-button" onClick={logout} title="Chiqish" aria-label="Chiqish">
                         <LogOut size={18} />

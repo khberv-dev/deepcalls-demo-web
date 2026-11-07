@@ -44,6 +44,10 @@ function ProfileForm({ me }) {
                 <input className="input" value={me.email} disabled />
                 <span className="muted small">Emailni oʻzgartirib boʻlmaydi · Roʻyxatdan oʻtilgan: {formatDate(me.createdAt)}</span>
             </label>
+            <label className="field">
+                <span className="field-label">Rol</span>
+                <input className="input" value={me.role?.name ?? 'Rolsiz'} disabled />
+            </label>
             {updateMe.isError && <p className="error">{getErrorMessage(updateMe.error)}</p>}
             <button className="button" type="submit" disabled={updateMe.isPending}>
                 {updateMe.isPending ? 'Saqlanmoqda…' : 'Saqlash'}

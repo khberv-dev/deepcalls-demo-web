@@ -47,6 +47,14 @@ export const STAGE_TYPE = {
     lost: 'Muvaffaqiyatsiz',
 }
 
+// Role permissions: a read and a write flag per resource. Write implies read.
+export const PERMISSION_RESOURCES = [
+    { key: 'User', label: 'Foydalanuvchilar', read: 'Roʻyxatni koʻrish', write: 'Yaratish, tahrirlash, rol berish' },
+    { key: 'Role', label: 'Rollar', read: 'Rollarni koʻrish', write: 'Rollarni yaratish va tahrirlash' },
+    { key: 'Contact', label: 'Boshqalarning kontaktlari', read: 'Kontakt va qoʻngʻiroqlarni koʻrish', write: 'Tahrirlash, oʻchirish, qoʻngʻiroq yuklash' },
+    { key: 'Comment', label: 'Boshqalarning izohlari', read: 'Izohlarni koʻrish', write: 'Izohlarni tahrirlash va oʻchirish' },
+]
+
 // `language` is the ISO 639-1 code of the language spoken in the call.
 export const LANGUAGE = {
     uz: 'Oʻzbek',

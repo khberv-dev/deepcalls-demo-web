@@ -25,6 +25,7 @@ api.interceptors.response.use(
 
 const STATUS_MESSAGES = {
     401: 'Avtorizatsiyadan oʻtilmagan',
+    403: 'Bu amal uchun ruxsat yoʻq',
     404: 'Maʼlumot topilmadi',
     413: 'Fayl hajmi juda katta',
 }
@@ -35,6 +36,7 @@ const STATUS_MESSAGES = {
  */
 export function getErrorMessage(error) {
     const message = error?.response?.data?.message
+    if (error?.response?.status === 403) return STATUS_MESSAGES[403] // server text names the missing permission
     if (Array.isArray(message)) return message.join('; ')
     if (typeof message === 'string' && message) return message
 

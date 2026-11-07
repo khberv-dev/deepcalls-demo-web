@@ -17,7 +17,8 @@ function CallStatus({ status }) {
     )
 }
 
-export default function CallsPanel({ contactId }) {
+/** `canWrite`: may upload, retry and delete calls (own contact, or another user's with canWriteContact). */
+export default function CallsPanel({ contactId, canWrite }) {
     const { data, isLoading, error } = useContactCalls(contactId)
     const retryCall = useRetryCall()
     const deleteCall = useDeleteCall()
@@ -56,7 +57,7 @@ export default function CallsPanel({ contactId }) {
                         )}
                         <div className="call-item-actions">
                             <AudioPlayer callId={call.id} />
-                            {call.status === 'failed' && (
+                            {canWrite && call.status === 'failed' && (
                                 <button
                                     type="button"
                                     className="link-button"
@@ -71,15 +72,17 @@ export default function CallsPanel({ contactId }) {
                                     <RotateCcw size={13} /> Qayta urinish
                                 </button>
                             )}
-                            <button
-                                type="button"
-                                className="icon-button call-delete"
-                                title={call.status === 'analyzing' ? 'Tahlil vaqtida oʻchirib boʻlmaydi' : 'Oʻchirish'}
-                                disabled={call.status === 'analyzing'}
-                                onClick={() => setToDelete(call)}
-                            >
-                                <Trash2 size={14} />
-                            </button>
+                            {canWrite && (
+                                <button
+                                    type="button"
+                                    className="icon-button call-delete"
+                                    title={call.status === 'analyzing' ? 'Tahlil vaqtida oʻchirib boʻlmaydi' : 'Oʻchirish'}
+                                    disabled={call.status === 'analyzing'}
+                                    onClick={() => setToDelete(call)}
+                                >
+                                    <Trash2 size={14} />
+                                </button>
+                            )}
                         </div>
                     </li>
                 ))}

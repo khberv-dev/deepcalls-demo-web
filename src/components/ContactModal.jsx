@@ -41,9 +41,11 @@ function ListInput({ label, values, onChange, type, placeholder }) {
 /**
  * Create (no `contact`) or edit (`contact`) a contact.
  * `initial` pre-fills a new contact: { firstName, sourceId, pipelineId, stageId }.
+ * `restrictPlacement`: editing another user's contact. Its source and stage must be the owner's, which we can't
+ * list, so those fields are hidden and not sent.
  * `onCreated(contact)` runs after a successful create; `onDeleted` runs after a successful delete (e.g. to leave the contact's page).
  */
-export default function ContactModal({ contact, initial = {}, onClose, onDeleted, onCreated }) {
+export default function ContactModal({ contact, initial = {}, onClose, onDeleted, onCreated, restrictPlacement = false }) {
     const isEdit = !!contact
     const { data: sources = [] } = useSources()
     const { data: pipelines = [] } = usePipelines()
@@ -77,12 +79,14 @@ export default function ContactModal({ contact, initial = {}, onClose, onDeleted
             middleName: form.middleName.trim() || null,
             phones: form.phones.map((p) => p.trim()).filter(Boolean),
             emails: form.emails.map((m) => m.trim()).filter(Boolean),
-            sourceId: form.sourceId || null,
         }
-        // Pipeline placement: a stage wins; a pipeline alone means its first stage; neither removes it (on edit).
-        if (form.stageId) body.stageId = form.stageId
-        else if (form.pipelineId) body.pipelineId = form.pipelineId
-        else if (isEdit) body.stageId = null
+        if (!restrictPlacement) {
+            body.sourceId = form.sourceId || null
+            // Pipeline placement: a stage wins; a pipeline alone means its first stage; neither removes it (on edit).
+            if (form.stageId) body.stageId = form.stageId
+            else if (form.pipelineId) body.pipelineId = form.pipelineId
+            else if (isEdit) body.stageId = null
+        }
 
         save.mutate(isEdit ? { id: contact.id, ...body } : body, {
             onSuccess: (saved) => {
@@ -196,52 +200,56 @@ export default function ContactModal({ contact, initial = {}, onClose, onDeleted
                     />
                 </div>
 
-                <label className="field">
-                    <span className="field-label">Manba</span>
-                    <select className="input" value={form.sourceId} onChange={(e) => set('sourceId')(e.target.value)}>
-                        <option value="">— Tanlanmagan —</option>
-                        {sources.map((s) => (
-                            <option key={s.id} value={s.id}>
-                                {s.name}
-                            </option>
-                        ))}
-                    </select>
-                </label>
+                {!restrictPlacement && (
+                    <>
+                        <label className="field">
+                            <span className="field-label">Manba</span>
+                            <select className="input" value={form.sourceId} onChange={(e) => set('sourceId')(e.target.value)}>
+                                <option value="">— Tanlanmagan —</option>
+                                {sources.map((s) => (
+                                    <option key={s.id} value={s.id}>
+                                        {s.name}
+                                    </option>
+                                ))}
+                            </select>
+                        </label>
 
-                <div className="grid-2">
-                    <label className="field">
-                        <span className="field-label">Voronka</span>
-                        <select
-                            className="input"
-                            value={form.pipelineId}
-                            onChange={(e) => setForm((f) => ({ ...f, pipelineId: e.target.value, stageId: '' }))}
-                        >
-                            <option value="">— Voronkada emas —</option>
-                            {pipelines.map((p) => (
-                                <option key={p.id} value={p.id}>
-                                    {p.name}
-                                </option>
-                            ))}
-                        </select>
-                    </label>
-                    <label className="field">
-                        <span className="field-label">Bosqich</span>
-                        <select
-                            className="input"
-                            value={form.stageId}
-                            onChange={(e) => set('stageId')(e.target.value)}
-                            disabled={!selectedPipeline}
-                        >
-                            <option value="">{selectedPipeline ? 'Birinchi bosqich' : '—'}</option>
-                            {selectedPipeline?.stages.map((s) => (
-                                <option key={s.id} value={s.id}>
-                                    {s.name}
-                                </option>
-                            ))}
-                        </select>
-                    </label>
-                </div>
+                        <div className="grid-2">
+                            <label className="field">
+                                <span className="field-label">Voronka</span>
+                                <select
+                                    className="input"
+                                    value={form.pipelineId}
+                                    onChange={(e) => setForm((f) => ({ ...f, pipelineId: e.target.value, stageId: '' }))}
+                                >
+                                    <option value="">— Voronkada emas —</option>
+                                    {pipelines.map((p) => (
+                                        <option key={p.id} value={p.id}>
+                                            {p.name}
+                                        </option>
+                                    ))}
+                                </select>
+                            </label>
+                            <label className="field">
+                                <span className="field-label">Bosqich</span>
+                                <select
+                                    className="input"
+                                    value={form.stageId}
+                                    onChange={(e) => set('stageId')(e.target.value)}
+                                    disabled={!selectedPipeline}
+                                >
+                                    <option value="">{selectedPipeline ? 'Birinchi bosqich' : '—'}</option>
+                                    {selectedPipeline?.stages.map((s) => (
+                                        <option key={s.id} value={s.id}>
+                                            {s.name}
+                                        </option>
+                                    ))}
+                                </select>
+                            </label>
+                        </div>
 
+                    </>
+                )}
                 {isEdit && (
                     <p className="muted small">
                         Yaratilgan: {formatDateTime(contact.createdAt)} · Yangilangan: {formatDateTime(contact.updatedAt)}

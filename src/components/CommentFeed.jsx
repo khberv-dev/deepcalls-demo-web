@@ -5,16 +5,18 @@ import AudioPlayer from './AudioPlayer.jsx'
 import ConfirmDialog from './ConfirmDialog.jsx'
 import { getErrorMessage } from '../api/client.js'
 import { useUploadCall } from '../hooks/useCalls.js'
+import { usePermissions } from '../hooks/usePermissions.js'
+import { useUserNames } from '../hooks/useUsers.js'
 import { useContactComments, useCreateComment, useDeleteComment, useUpdateComment } from '../hooks/useComments.js'
 import { INTENT_CATEGORY, LEVEL, SENTIMENT, label } from '../labels.js'
 import { toastError, toastSuccess } from '../toast/toastStore.js'
-import { formatDateTime } from '../utils/format.js'
+import { formatDateTime, fullName } from '../utils/format.js'
 
 const MAX_TEXT = 10_000
 const MAX_FILE = 100 * 1024 * 1024
 const ACCEPT = 'audio/*,.wav,.mp3,.aiff,.aac,.ogg,.opus,.flac,.m4a,.mp4,.webm'
 
-function Composer({ contactId }) {
+function Composer({ contactId, canUpload }) {
     const [text, setText] = useState('')
     const [progress, setProgress] = useState(null)
     const fileRef = useRef(null)
@@ -76,15 +78,17 @@ function Composer({ contactId }) {
                         e.target.value = ''
                     }}
                 />
-                <button
-                    type="button"
-                    className="button button--ghost"
-                    onClick={() => fileRef.current?.click()}
-                    disabled={uploadCall.isPending}
-                >
-                    <Upload size={14} />
-                    {progress !== null ? `Yuklanmoqda… ${progress}%` : 'Qoʻngʻiroq yuklash'}
-                </button>
+                {canUpload && (
+                    <button
+                        type="button"
+                        className="button button--ghost"
+                        onClick={() => fileRef.current?.click()}
+                        disabled={uploadCall.isPending}
+                    >
+                        <Upload size={14} />
+                        {progress !== null ? `Yuklanmoqda… ${progress}%` : 'Qoʻngʻiroq yuklash'}
+                    </button>
+                )}
                 <button type="submit" className="button" disabled={!text.trim() || createComment.isPending}>
                     {createComment.isPending ? 'Saqlanmoqda…' : 'Izoh qoʻshish'}
                 </button>
@@ -93,7 +97,7 @@ function Composer({ contactId }) {
     )
 }
 
-function CommentItem({ comment, onDelete }) {
+function CommentItem({ comment, author, canEdit, onDelete }) {
     const [editing, setEditing] = useState(false)
     const [draft, setDraft] = useState(comment.text)
     const [expanded, setExpanded] = useState(false)
@@ -113,23 +117,28 @@ function CommentItem({ comment, onDelete }) {
             <div className="feed-content">
                 <div className="feed-head">
                     <strong>{isAi ? 'AI qoʻngʻiroq tahlili' : 'Izoh'}</strong>
-                    <span className="muted small">{formatDateTime(comment.createdAt)}</span>
-                    <div className="feed-actions">
-                        <button
-                            type="button"
-                            className="icon-button"
-                            title="Tahrirlash"
-                            onClick={() => {
-                                setDraft(comment.text)
-                                setEditing(true)
-                            }}
-                        >
-                            <Pencil size={13} />
-                        </button>
-                        <button type="button" className="icon-button" title="Oʻchirish" onClick={() => onDelete(comment)}>
-                            <Trash2 size={13} />
-                        </button>
-                    </div>
+                    <span className="muted small">
+                        {formatDateTime(comment.createdAt)}
+                        {author && ` · ${author}`}
+                    </span>
+                    {canEdit && (
+                        <div className="feed-actions">
+                            <button
+                                type="button"
+                                className="icon-button"
+                                title="Tahrirlash"
+                                onClick={() => {
+                                    setDraft(comment.text)
+                                    setEditing(true)
+                                }}
+                            >
+                                <Pencil size={13} />
+                            </button>
+                            <button type="button" className="icon-button" title="Oʻchirish" onClick={() => onDelete(comment)}>
+                                <Trash2 size={13} />
+                            </button>
+                        </div>
+                    )}
                 </div>
 
                 {editing ? (
@@ -189,8 +198,23 @@ function CommentItem({ comment, onDelete }) {
     )
 }
 
-export default function CommentFeed({ contactId }) {
+/**
+ * Timeline of notes and AI analyses. Which comments appear is decided by the server (others' comments need
+ * canReadComment). Own comments are always editable; others' need canWriteComment. An AI comment's author is the
+ * user who uploaded the call.
+ */
+export default function CommentFeed({ contact, canUpload }) {
+    const contactId = contact.id
+    const { userId, canWriteComment } = usePermissions()
+    const userNames = useUserNames()
     const { data, isLoading, error, hasNextPage, fetchNextPage, isFetchingNextPage } = useContactComments(contactId)
+
+    const authorOf = (comment) => {
+        if (comment.userId === userId) return null // own comments need no byline
+        if (userNames[comment.userId]) return userNames[comment.userId]
+        if (comment.userId === contact.userId && contact.user) return fullName(contact.user)
+        return 'Boshqa foydalanuvchi'
+    }
     const deleteComment = useDeleteComment()
     const [toDelete, setToDelete] = useState(null)
 
@@ -201,7 +225,7 @@ export default function CommentFeed({ contactId }) {
 
     return (
         <section className="card panel feed">
-            <Composer contactId={contactId} />
+            <Composer contactId={contactId} canUpload={canUpload} />
 
             {isLoading && <p className="muted small">Yuklanmoqda…</p>}
             {error && <p className="error">{getErrorMessage(error)}</p>}
@@ -213,7 +237,13 @@ export default function CommentFeed({ contactId }) {
 
             <ul className="feed-list">
                 {data?.items.map((comment) => (
-                    <CommentItem key={comment.id} comment={comment} onDelete={setToDelete} />
+                    <CommentItem
+                        key={comment.id}
+                        comment={comment}
+                        author={authorOf(comment)}
+                        canEdit={comment.userId === userId || canWriteComment}
+                        onDelete={setToDelete}
+                    />
                 ))}
             </ul>
 

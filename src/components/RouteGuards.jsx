@@ -1,5 +1,7 @@
 import { Navigate, Outlet, useLocation } from 'react-router'
+import Spinner from './Spinner.jsx'
 import { useAuthToken } from '../hooks/useAuth.js'
+import { usePermissions } from '../hooks/usePermissions.js'
 
 /** Only for signed-in users; otherwise redirect to /login and come back afterwards. */
 export function RequireAuth() {
@@ -21,5 +23,13 @@ export function PublicOnly() {
         const to = from ? `${from.pathname}${from.search ?? ''}` : '/'
         return <Navigate to={to} replace />
     }
+    return <Outlet />
+}
+
+/** Screens that need a permission (e.g. `canReadUser`); others are sent to the start page. */
+export function RequirePermission({ permission }) {
+    const permissions = usePermissions()
+    if (!permissions.loaded && !permissions.failed) return <Spinner />
+    if (!permissions[permission]) return <Navigate to="/" replace />
     return <Outlet />
 }

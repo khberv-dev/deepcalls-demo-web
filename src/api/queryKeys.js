@@ -1,6 +1,14 @@
 // Central query keys so invalidation stays consistent across hooks.
 export const queryKeys = {
     me: ['user', 'me'],
+    users: {
+        all: ['users'],
+        list: (params) => ['users', 'list', params],
+        detail: (id) => ['users', 'detail', id],
+    },
+    roles: {
+        all: ['roles'],
+    },
     sources: {
         all: ['sources'],
         detail: (id) => ['sources', id],

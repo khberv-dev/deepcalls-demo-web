@@ -1,13 +1,15 @@
 import { Navigate, Route, Routes } from 'react-router'
 import Layout from './components/Layout.jsx'
-import { PublicOnly, RequireAuth } from './components/RouteGuards.jsx'
+import { PublicOnly, RequireAuth, RequirePermission } from './components/RouteGuards.jsx'
 import ContactPage from './pages/ContactPage.jsx'
 import ContactsPage from './pages/ContactsPage.jsx'
 import LoginPage from './pages/LoginPage.jsx'
 import PipelinePage from './pages/PipelinePage.jsx'
 import RegisterPage from './pages/RegisterPage.jsx'
+import RolesPage from './pages/RolesPage.jsx'
 import SettingsPage from './pages/SettingsPage.jsx'
 import SourcesPage from './pages/SourcesPage.jsx'
+import UsersPage from './pages/UsersPage.jsx'
 
 function App() {
     return (
@@ -25,6 +27,12 @@ function App() {
                     <Route path="/contacts/:contactId" element={<ContactPage/>}/>
                     <Route path="/sources" element={<SourcesPage/>}/>
                     <Route path="/settings" element={<SettingsPage/>}/>
+                    <Route element={<RequirePermission permission="canReadUser"/>}>
+                        <Route path="/users" element={<UsersPage/>}/>
+                    </Route>
+                    <Route element={<RequirePermission permission="canReadRole"/>}>
+                        <Route path="/roles" element={<RolesPage/>}/>
+                    </Route>
                     <Route path="*" element={<Navigate to="/pipelines" replace/>}/>
                 </Route>
             </Route>
