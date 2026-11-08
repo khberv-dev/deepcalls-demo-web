@@ -1,11 +1,9 @@
 import { NavLink, Outlet } from 'react-router'
-import { Kanban, LogOut, Settings, ShieldCheck, Tag, Users } from 'lucide-react'
+import { Kanban, ShieldCheck, Tag, Users } from 'lucide-react'
 import Brand from './Brand.jsx'
-import { useLogout } from '../hooks/useAuth.js'
+import SidebarFooter from './SidebarFooter.jsx'
 import { usePermissions } from '../hooks/usePermissions.js'
 import { useRealtimeNotifications } from '../hooks/useRealtime.js'
-import { useMe } from '../hooks/useUser.js'
-import { fullName, initials } from '../utils/format.js'
 
 const NAV_GROUPS = [
     {
@@ -20,17 +18,13 @@ const NAV_GROUPS = [
         items: [
             { to: '/users', label: 'Foydalanuvchilar', icon: Users, permission: 'canReadUser' },
             { to: '/roles', label: 'Rollar', icon: ShieldCheck, permission: 'canReadRole' },
-            { to: '/settings', label: 'Sozlamalar', icon: Settings },
         ],
     },
 ]
 
 export default function Layout() {
-    const { data: me } = useMe()
-    const logout = useLogout()
     useRealtimeNotifications()
     const permissions = usePermissions()
-    const name = fullName(me)
 
     return (
         <div className="app">
@@ -57,16 +51,7 @@ export default function Layout() {
                         )
                     })}
                 </nav>
-                <div className="sidebar-user">
-                    <span className="avatar">{initials(name) || '?'}</span>
-                    <div className="sidebar-user-info">
-                        <span className="sidebar-user-name">{name || '…'}</span>
-                        <span className="sidebar-user-meta">{me?.role?.name ?? me?.email}</span>
-                    </div>
-                    <button className="icon-button" onClick={logout} title="Chiqish" aria-label="Chiqish">
-                        <LogOut size={16} />
-                    </button>
-                </div>
+                <SidebarFooter />
             </aside>
             <main className="main">
                 <Outlet />

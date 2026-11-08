@@ -66,8 +66,9 @@ There is no test runner configured. If tests are needed, Vitest fits this Vite s
 
 ## UI structure
 
-- **Look:** light theme with a modern CRM style (in the vein of Attio, Linear and HubSpot):
-  - A white sidebar with grouped navigation (CRM / Boshqaruv) on a `#f7f8fa` page background.
+- **Look:** a modern CRM style (in the vein of Attio, Linear and HubSpot), with light and dark themes:
+  - **Themes:** dark mode overrides the same CSS variables under `:root[data-theme='dark']` in `src/index.css`. `src/theme/themeStore.js` / `useTheme()` keep the choice in localStorage (`deepcalls.theme`); with no saved choice, the OS setting decides. An inline script in `index.html` sets `data-theme` before React loads, so the page never flashes the wrong theme. Never hard-code colours in components or CSS rules; add a variable to both theme blocks instead.
+  - The sidebar has grouped navigation (CRM / Boshqaruv). Its footer (`SidebarFooter`) holds the "Tungi rejim" switch and, below it, the profile card. The card opens a menu with "Profilni tahrirlash" (`ProfileModal`), "Parolni oʻzgartirish" (`ChangePasswordModal`) and "Chiqish". There is no settings page.
   - White cards with hairline borders and soft shadows.
   - The Inter font, loaded from Google Fonts in `index.html`.
   - An indigo primary colour (`--accent: #4f46e5`).
@@ -79,7 +80,7 @@ There is no test runner configured. If tests are needed, Vitest fits this Vite s
   - login and register;
   - **leads** (`/leads`): contacts are called "lidlar" in the UI. The page has a Kanban / Roʻyxat toggle. The view is the `?view=board|list` URL parameter, falling back to the last view used (localStorage). `LeadsPage` renders `LeadsBoard` or `LeadsList` from `src/components/`. Both views use the `pipelineId` URL parameter: the board shows that pipeline, the list filters by it, so switching views keeps it.
   - the lead card (`/leads/:contactId`);
-  - sources (shown as a table), users, roles and settings.
+  - sources (shown as a table), users and roles.
   - Old `/pipelines/*` and `/contacts[/:id]` URLs redirect to `/leads`.
 - `src/components/`: shared pieces (`Layout`, `Modal`, `ConfirmDialog`, `Toaster`, `SourceIcon`) and the form modals (`ContactModal`, `StageModal`, `PipelineModal`, `SourceModal`). Each form modal handles both create and edit, depending on whether an existing entity is passed in.
 - **Route guards** (`src/components/RouteGuards.jsx`):

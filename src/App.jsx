@@ -6,7 +6,6 @@ import LoginPage from './pages/LoginPage.jsx'
 import LeadsPage from './pages/LeadsPage.jsx'
 import RegisterPage from './pages/RegisterPage.jsx'
 import RolesPage from './pages/RolesPage.jsx'
-import SettingsPage from './pages/SettingsPage.jsx'
 import SourcesPage from './pages/SourcesPage.jsx'
 import UsersPage from './pages/UsersPage.jsx'
 
@@ -33,7 +32,6 @@ function App() {
                     <Route path="/contacts" element={<Navigate to="/leads?view=list" replace/>}/>
                     <Route path="/contacts/:contactId" element={<ContactRedirect/>}/>
                     <Route path="/sources" element={<SourcesPage/>}/>
-                    <Route path="/settings" element={<SettingsPage/>}/>
                     <Route element={<RequirePermission permission="canReadUser"/>}>
                         <Route path="/users" element={<UsersPage/>}/>
                     </Route>
