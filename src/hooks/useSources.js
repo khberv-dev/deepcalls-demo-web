@@ -25,8 +25,9 @@ export function useUpdateSource() {
         onSuccess: (source) => {
             queryClient.setQueryData(queryKeys.sources.detail(source.id), source)
             queryClient.invalidateQueries({ queryKey: queryKeys.sources.all })
-            // contacts embed their source
+            // contacts and forms embed their source
             queryClient.invalidateQueries({ queryKey: queryKeys.contacts.all })
+            queryClient.invalidateQueries({ queryKey: queryKeys.forms.all })
         },
     })
 }
@@ -40,6 +41,7 @@ export function useDeleteSource() {
             queryClient.removeQueries({ queryKey: queryKeys.sources.detail(id) })
             queryClient.invalidateQueries({ queryKey: queryKeys.sources.all })
             queryClient.invalidateQueries({ queryKey: queryKeys.contacts.all })
+            queryClient.invalidateQueries({ queryKey: queryKeys.forms.all })
         },
     })
 }

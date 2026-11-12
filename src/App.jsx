@@ -2,6 +2,7 @@ import { Navigate, Route, Routes, useParams } from 'react-router'
 import Layout from './components/Layout.jsx'
 import { PublicOnly, RequireAuth, RequirePermission } from './components/RouteGuards.jsx'
 import ContactPage from './pages/ContactPage.jsx'
+import FormsPage from './pages/FormsPage.jsx'
 import LoginPage from './pages/LoginPage.jsx'
 import LeadsPage from './pages/LeadsPage.jsx'
 import RegisterPage from './pages/RegisterPage.jsx'
@@ -32,6 +33,7 @@ function App() {
                     <Route path="/contacts" element={<Navigate to="/leads?view=list" replace/>}/>
                     <Route path="/contacts/:contactId" element={<ContactRedirect/>}/>
                     <Route path="/sources" element={<SourcesPage/>}/>
+                    <Route path="/forms" element={<FormsPage/>}/>
                     <Route element={<RequirePermission permission="canReadUser"/>}>
                         <Route path="/users" element={<UsersPage/>}/>
                     </Route>

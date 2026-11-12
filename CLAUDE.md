@@ -17,7 +17,7 @@ There is no test runner configured. If tests are needed, Vitest fits this Vite s
 
 ## Architecture
 
-- **Backend:** the API base URL (including the `/api` prefix) comes from `VITE_API_URL` in `.env` (currently `http://192.168.1.35:8000/api`). Vite only reads `.env` at startup, so restart the dev server after changing it.
+- **Backend:** the API base URL (including the `/api` prefix) comes from `VITE_API_URL` in `.env` (for example `http://localhost:8000/api`). `.env` is gitignored and there is no `.env.example`, so a fresh checkout has to create it. Vite only reads `.env` at startup, so restart the dev server after changing it.
 - **Request layers:**
   - `src/api/client.js`: the shared axios instance (adds the Bearer token, 30 s timeout) and `getErrorMessage`. Server errors look like `{ statusCode, message, error }`, where `message` is an array of strings for 400 validation errors.
   - `src/api/*.js`: one plain async function per endpoint, returning `response.data`.
@@ -27,7 +27,7 @@ There is no test runner configured. If tests are needed, Vitest fits this Vite s
 - **Auth:** `src/auth/tokenStore.js` keeps the access token in memory and in localStorage. Components read it with `useAuthToken()` (from `src/hooks/useAuth.js`). There is no refresh token and no logout endpoint: logging out just clears the token. Any 401 (other than from `/auth/*`) clears the token, and clearing the token clears the query cache (`src/queryClient.js`).
 - **Roles and permissions:**
   - A user has zero or one role. A role holds read and write flags for `User`, `Role`, `Contact` and `Comment`, and write implies read.
-  - Your own records are always accessible; the flags only grant access to other users' records. Pipelines and sources are always private to their owner.
+  - Your own records are always accessible; the flags only grant access to other users' records. Pipelines, sources and forms are always private to their owner.
   - `usePermissions()` (`src/hooks/usePermissions.js`) reads `permissions` from `GET /user/me`. It is only for showing and hiding UI; the server enforces everything and answers 403 or 404.
   - `/user/me` is reloaded on window focus and every 5 minutes, because an admin can change a role at any time.
   - `RequirePermission` guards `/users` (`canReadUser`) and `/roles` (`canReadRole`).
@@ -35,18 +35,26 @@ There is no test runner configured. If tests are needed, Vitest fits this Vite s
   - `GET /contacts?owner=me|all|<userId>`; anything other than `me` needs `canReadContact`.
   - A contact's source, pipeline and stage refer to the owner's own records, which we can't list. So for someone else's contact, the source, pipeline and stage filters and fields are hidden: `ContactModal` gets `restrictPlacement`, and the stage is shown read-only.
   - Uploading, retrying and deleting calls on someone else's contact needs `canWriteContact`.
-  - Comments by others are editable only with `canWriteComment`. Comment authors are shown through `useUserNames()`, which only works with `canReadUser`.
+  - Comments by others are editable only with `canWriteComment`. Other users' comments are only listed with `canReadComment` (the server filters the history). Names of comment authors and contact owners come embedded in the response (`item.user`, `contact.user`), so showing them doesn't need `canReadUser`.
 - **New accounts start empty:** no pipelines, no sources and no role (only the admin created by the server's seed has data). The board shows "Avval voronka yarating".
   - `POST /pipelines` requires `stages`, so every pipeline is created through `PipelineCreateForm`: a name plus an editable list of stages, pre-filled with a template. It is used by `PipelineModal` (empty state) and `PipelinesManagerModal`; renaming lives only in the manager.
 - **Server rules the client relies on:** the server rejects unknown fields with 400, so send only documented fields. It normalizes phones and emails, so always render what it returns. Deleting a stage or pipeline that still has contacts returns 409. To move a contact, send `PATCH /contacts/:id` with `{ stageId }`.
-- **Query client:** `QueryClient` is defined in `src/queryClient.js` and provided in `main.jsx`.
+- **Query client:** `QueryClient` is defined in `src/queryClient.js` and provided in `main.jsx`. Its defaults turn off refetch on window focus (hooks that need it, like `/user/me`, opt back in), don't retry 4xx errors, retry network and 5xx failures once, and never retry mutations.
 - **Calls and AI analysis:** calls are uploaded per contact with `POST /contacts/:id/calls` (multipart, field `file`, no timeout). The response comes back immediately with `status: "created"`. A background job on the server analyzes the call, which then becomes `done` or `failed`. On `done`, the server adds a `call_analysis` comment to the contact; its `details` field holds the full analysis, which `src/components/AnalysisResult.jsx` renders. AI free text is in Uzbek; enum values stay in English.
 - **Recordings:** `GET /calls/:id/audio` needs the auth header, so `AudioPlayer` fetches the file as a Blob and plays it from an object URL, which it revokes on unmount.
 - **WebSocket** (`src/realtime/notifications.js` and `src/hooks/useRealtime.js`, mounted once in `Layout`):
   - The URL is `ws(s)://…/api/ws`, built from `VITE_API_URL`; `VITE_WS_URL` overrides it.
   - The token goes in the first message (`{ event: 'auth', data: { token } }`). Close code 4401 means the token is bad: log out and don't reconnect. Other disconnects reconnect with backoff.
   - The `call.status_changed` event updates the `entity.status` of the call's history entry, adds `data.history` (the new AI comment's entry) to the top of the feed, and shows a toast.
-  - After a reconnect, all history queries are reloaded, because events sent while disconnected are lost.
+  - The `lead.created` event (a contact created outside the app; today only by a form submission, sent only to the owner) stores the contact, reloads the contact lists, pipelines (stage counts) and forms (`submissionsCount`), and shows a "Yangi lid: …" toast. Unknown `origin.type` values are allowed.
+  - After a reconnect, history, contact lists, pipelines and forms are reloaded, because events sent while disconnected are lost.
+- **Lead forms** (`/forms`, `src/api/forms.js`, `src/hooks/useForms.js`, `FormModal`):
+  - A form has a public `link` (built by the server from its `PUBLIC_URL`; the page lives at `/f/:slug` on the API host, outside `/api`). Each submission creates a contact for the form's owner in the form's source and stage, plus a note with the non-contact answers, and sends the owner a `lead.created` event. The client never calls the public `/public/forms/*` endpoints.
+  - Fields: exactly one `firstName` (always required), at most one `lastName` / `middleName`, any number of `phone`, `email`, `text`, `textarea` and `select` (which needs `options`). `fields` replaces the whole list on `PATCH`.
+  - `FormModal` always sends every field's `key`. The server's default for a missing key is `field<N>` by position, which can collide with keys kept from before an edit. Submissions are keyed by `key`, so existing keys are preserved.
+  - Placement uses the contact rules (`stageId` wins, `pipelineId` alone means its first stage, `stageId: null` clears it).
+  - The logo (png/jpeg/webp/gif, max 2 MB) is a separate multipart upload done after the form is saved. `logoUrl` is public, so a plain `<img src>` works.
+  - Every form mutation returns the whole form, which is written into the list cache. Forms embed source and stage names, so source and stage/pipeline mutations invalidate `forms`. `POST /forms/:id/link` revokes the old link at once.
 - **Contact history** (`GET /contacts/:id/history`) is the only way to list a contact's comments and calls; the old per-contact list endpoints are gone.
   - Each item is `{ type: 'comment' | 'call' | 'pipeline', entityId, user, entity, createdAt }`, and `entity` is the current Comment, Call or StageChange.
   - `useContactHistory(contactId, type)` (`src/hooks/useHistory.js`) is an infinite query keyed `['history', contactId, type]`, where `type` is `'all'` or one of the entry types.
@@ -80,9 +88,9 @@ There is no test runner configured. If tests are needed, Vitest fits this Vite s
   - login and register;
   - **leads** (`/leads`): contacts are called "lidlar" in the UI. The page has a Kanban / Roʻyxat toggle. The view is the `?view=board|list` URL parameter, falling back to the last view used (localStorage). `LeadsPage` renders `LeadsBoard` or `LeadsList` from `src/components/`. Both views use the `pipelineId` URL parameter: the board shows that pipeline, the list filters by it, so switching views keeps it.
   - the lead card (`/leads/:contactId`);
-  - sources (shown as a table), users and roles.
+  - sources and forms (both shown as tables), users and roles.
   - Old `/pipelines/*` and `/contacts[/:id]` URLs redirect to `/leads`.
-- `src/components/`: shared pieces (`Layout`, `Modal`, `ConfirmDialog`, `Toaster`, `SourceIcon`) and the form modals (`ContactModal`, `StageModal`, `PipelineModal`, `SourceModal`). Each form modal handles both create and edit, depending on whether an existing entity is passed in.
+- `src/components/`: shared pieces (`Layout`, `Modal`, `ConfirmDialog`, `Toaster`, `SourceIcon`) and the form modals (`ContactModal`, `StageModal`, `PipelineModal`, `SourceModal`, `FormModal`). Each form modal handles both create and edit, depending on whether an existing entity is passed in.
 - **Route guards** (`src/components/RouteGuards.jsx`):
   - `RequireAuth` redirects to `/login` when there is no token.
   - `PublicOnly` sends signed-in users into the app.
@@ -104,5 +112,4 @@ There is no test runner configured. If tests are needed, Vitest fits this Vite s
 - Entry point: `index.html` → `src/main.jsx` (mounts `<App/>` into `#root` with `createRoot`; it is not wrapped in `<StrictMode>`) → `src/App.jsx`.
 - Global CSS is imported once in `main.jsx` (`src/index.css`).
 - ESLint uses the flat config (`eslint.config.js`) with `@eslint/js` recommended, `react-hooks` recommended, and `react-refresh/vite`. The `react-refresh` rule warns when a module exports something other than components, so keep non-component exports (helpers, constants, contexts) in separate files so HMR keeps working.
-- `index.html` points to `/favicon.svg`, but there's no `public/` directory yet, so the favicon currently 404s.
 - Source files in `src/` use 4-space indentation; config files use 2 spaces.

@@ -27,7 +27,9 @@ const STATUS_MESSAGES = {
     401: 'Avtorizatsiyadan oʻtilmagan',
     403: 'Bu amal uchun ruxsat yoʻq',
     404: 'Maʼlumot topilmadi',
+    410: 'Forma faol emas',
     413: 'Fayl hajmi juda katta',
+    415: 'Fayl turi qoʻllab-quvvatlanmaydi',
 }
 
 /**

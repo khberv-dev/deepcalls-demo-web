@@ -1,8 +1,6 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { createUser, deleteUser, getUsers, updateUser } from '../api/users.js'
 import { queryKeys } from '../api/queryKeys.js'
-import { fullName } from '../utils/format.js'
-import { usePermissions } from './usePermissions.js'
 
 /** @param {{ search?: string, roleId?: string, page?: number, limit?: number }} params */
 export function useUsers(params = {}, { enabled = true } = {}) {
@@ -12,18 +10,6 @@ export function useUsers(params = {}, { enabled = true } = {}) {
         placeholderData: keepPreviousData,
         enabled,
     })
-}
-
-/**
- * id → display name for users, for showing comment authors and contact owners.
- * Only available with `canReadUser`; otherwise the map is empty.
- */
-export function useUserNames() {
-    const { canReadUser } = usePermissions()
-    const { data } = useUsers({ limit: 100 }, { enabled: canReadUser })
-    const names = {}
-    for (const user of data?.items ?? []) names[user.id] = fullName(user)
-    return names
 }
 
 function useInvalidateUsers() {

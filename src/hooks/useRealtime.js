@@ -23,6 +23,22 @@ function handleCallStatusChanged(queryClient, { callId, contactId, status, error
     else toast(`${who}Qoʻngʻiroq tahlilida xatolik${error ? ` — ${error}` : ''}`, 'error')
 }
 
+/**
+ * A contact was created outside the app (today only by a form submission). Only its owner gets this. Board columns
+ * and the list are paged and filtered, so they're reloaded instead of patched; pipelines carry per-stage counts and
+ * forms their `submissionsCount`.
+ */
+function handleLeadCreated(queryClient, { contact, origin }) {
+    if (contact?.id) queryClient.setQueryData(queryKeys.contacts.detail(contact.id), contact)
+    queryClient.invalidateQueries({ queryKey: queryKeys.contacts.lists })
+    queryClient.invalidateQueries({ queryKey: queryKeys.pipelines.all })
+    if (origin?.type === 'form') queryClient.invalidateQueries({ queryKey: queryKeys.forms.all })
+
+    // More origin types may be added; for unknown ones the toast just has no suffix.
+    const from = origin?.type === 'form' && origin.name ? ` (${origin.name})` : ''
+    toast(`Yangi lid: ${fullName(contact) || 'nomaʼlum'}${from}`, 'success')
+}
+
 /** Keeps a WebSocket open while signed in and applies server events to the query cache. Mount once (in Layout). */
 export function useRealtimeNotifications() {
     const token = useAuthToken()
@@ -33,10 +49,15 @@ export function useRealtimeNotifications() {
         return connectNotifications(token, {
             onEvent: (event, data) => {
                 if (event === 'call.status_changed') handleCallStatusChanged(queryClient, data)
+                else if (event === 'lead.created') handleLeadCreated(queryClient, data)
             },
-            // Events sent while disconnected are lost: after a reconnect, reload history.
+            // Events sent while disconnected are lost: after a reconnect, reload whatever they would have changed.
             onReady: (isReconnect) => {
-                if (isReconnect) queryClient.invalidateQueries({ queryKey: queryKeys.history.all })
+                if (!isReconnect) return
+                queryClient.invalidateQueries({ queryKey: queryKeys.history.all })
+                queryClient.invalidateQueries({ queryKey: queryKeys.contacts.lists })
+                queryClient.invalidateQueries({ queryKey: queryKeys.pipelines.all })
+                queryClient.invalidateQueries({ queryKey: queryKeys.forms.all })
             },
             onUnauthorized: clearToken,
         })

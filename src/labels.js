@@ -47,6 +47,19 @@ export const STAGE_TYPE = {
     lost: 'Muvaffaqiyatsiz',
 }
 
+// Form field types. The first three fill the contact's name, `phone`/`email` its lists; the rest go into the
+// submission note.
+export const FORM_FIELD_TYPE = {
+    firstName: 'Ism',
+    lastName: 'Familiya',
+    middleName: 'Otasining ismi',
+    phone: 'Telefon',
+    email: 'Email',
+    text: 'Matn',
+    textarea: 'Uzun matn',
+    select: 'Tanlov',
+}
+
 // Role permissions: a read and a write flag per resource. Write implies read.
 export const PERMISSION_RESOURCES = [
     { key: 'User', label: 'Foydalanuvchilar', read: 'Roʻyxatni koʻrish', write: 'Yaratish, tahrirlash, rol berish' },

@@ -579,6 +579,7 @@ select.input {
 }
 .modal--sm { max-width: 440px; }
 .modal--md { max-width: 640px; }
+.modal--lg { max-width: 820px; }
 .modal-header {
   display: flex;
   align-items: center;
@@ -1596,8 +1597,26 @@ select.input {
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
   transition: transform 0.15s;
 }
-.theme-toggle[aria-checked='true'] .switch { background: var(--accent); }
-.theme-toggle[aria-checked='true'] .switch-thumb { transform: translateX(14px); }
+.theme-toggle[aria-checked='true'] .switch,
+.switch-button[aria-checked='true'] .switch { background: var(--accent); }
+.theme-toggle[aria-checked='true'] .switch-thumb,
+.switch-button[aria-checked='true'] .switch-thumb { transform: translateX(14px); }
+
+/* A bare switch with a short label, e.g. a form's on/off toggle in a table row. */
+.switch-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 2px 0;
+  border: none;
+  background: none;
+  color: var(--text-2);
+  font: inherit;
+  cursor: pointer;
+}
+.switch-button:focus-visible { outline: none; }
+.switch-button:focus-visible .switch { box-shadow: var(--ring); }
+.switch-button:disabled { cursor: default; opacity: 0.6; }
 
 .profile-menu { position: relative; }
 .menu {
@@ -1638,3 +1657,59 @@ select.input {
 .menu-item--danger svg { color: var(--danger); }
 .menu-item--danger:hover { background: var(--danger-soft); }
 .menu-separator { height: 1px; margin: 6px 0; background: var(--border); }
+
+/* ==========================================================================
+   Lead forms
+   ========================================================================== */
+
+.form-thumb { width: 100%; height: 100%; border-radius: var(--radius); object-fit: cover; }
+
+.form-head { display: flex; gap: 16px; align-items: flex-start; }
+.form-head-fields { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 8px; }
+.form-logo {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 72px;
+  height: 72px;
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-lg);
+  background: var(--surface-2);
+  overflow: hidden;
+}
+.form-logo-img { width: 100%; height: 100%; object-fit: contain; background: var(--surface); }
+.form-logo-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 14px; }
+.form-logo-actions label.link-button { cursor: pointer; }
+
+.form-field-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+.form-field-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 10px 10px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+}
+.form-field-main,
+.form-field-extra { display: flex; align-items: center; gap: 8px; }
+.form-field-main > .input { flex: 1; }
+.form-field-type { flex: 0 0 150px; }
+.form-field-required { flex: none; align-items: center; }
+.form-field-required input { margin-top: 0; }
+.form-field-actions { display: flex; flex: none; }
+.form-field-actions .icon-button { width: 28px; height: 28px; }
+.form-field-extra,
+.form-field-options { margin-left: 26px; width: auto; }
+.form-field-extra .input { flex: 1; height: var(--control-h-sm); font-size: 13px; }
+.form-field-extra .form-field-key { flex: 0 0 170px; font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 12px; }
+
+@media (max-width: 640px) {
+  .form-head { flex-direction: column; }
+  .form-field-main { flex-wrap: wrap; }
+  .form-field-type { flex: 1 1 100%; }
+  .form-field-extra { flex-wrap: wrap; margin-left: 0; }
+  .form-field-options { margin-left: 0; }
+  .form-field-extra .form-field-key { flex: 1 1 100%; }
+}

@@ -17,6 +17,11 @@ export const queryKeys = {
         all: ['pipelines'],
         detail: (id) => ['pipelines', id],
     },
+    // Forms embed their source and stage names, so source and pipeline mutations invalidate them.
+    forms: {
+        all: ['forms'],
+        detail: (id) => ['forms', id],
+    },
     contacts: {
         all: ['contacts'],
         lists: ['contacts', 'list'],

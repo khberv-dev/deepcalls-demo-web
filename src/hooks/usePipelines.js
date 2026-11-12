@@ -37,8 +37,11 @@ function usePipelineMutation(mutationFn, { touchesContacts = false } = {}) {
         mutationFn,
         onSuccess: (pipeline) => {
             storePipeline(queryClient, pipeline)
-            // contacts embed their stage (name, color, position)
-            if (touchesContacts) queryClient.invalidateQueries({ queryKey: queryKeys.contacts.all })
+            // contacts and forms embed their stage (name, color, position)
+            if (touchesContacts) {
+                queryClient.invalidateQueries({ queryKey: queryKeys.contacts.all })
+                queryClient.invalidateQueries({ queryKey: queryKeys.forms.all })
+            }
         },
     })
 }
@@ -72,6 +75,7 @@ export function useDeletePipeline() {
         onSuccess: (_, id) => {
             queryClient.removeQueries({ queryKey: queryKeys.pipelines.detail(id) })
             queryClient.setQueryData(queryKeys.pipelines.all, (list) => list?.filter((p) => p.id !== id))
+            queryClient.invalidateQueries({ queryKey: queryKeys.forms.all })
         },
     })
 }

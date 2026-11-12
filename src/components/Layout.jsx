@@ -1,5 +1,5 @@
 import { NavLink, Outlet } from 'react-router'
-import { Kanban, ShieldCheck, Tag, Users } from 'lucide-react'
+import { ClipboardList, Kanban, ShieldCheck, Tag, Users } from 'lucide-react'
 import Brand from './Brand.jsx'
 import SidebarFooter from './SidebarFooter.jsx'
 import { usePermissions } from '../hooks/usePermissions.js'
@@ -11,6 +11,7 @@ const NAV_GROUPS = [
         items: [
             { to: '/leads', label: 'Lidlar', icon: Kanban },
             { to: '/sources', label: 'Manbalar', icon: Tag },
+            { to: '/forms', label: 'Formalar', icon: ClipboardList },
         ],
     },
     {
