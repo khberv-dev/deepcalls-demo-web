@@ -40,9 +40,6 @@ export default function SourcesPage() {
             ) : !sources.length ? (
                 <div className="empty-state">
                     <p className="muted">Hali manbalar yoʻq</p>
-                    <button className="button" onClick={() => setModal({ type: 'edit' })}>
-                        <Plus size={16} /> Manba qoʻshish
-                    </button>
                 </div>
             ) : (
                 <div className="table-wrap">

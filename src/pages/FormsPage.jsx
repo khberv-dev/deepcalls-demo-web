@@ -78,9 +78,6 @@ export default function FormsPage() {
             ) : !forms.length ? (
                 <div className="empty-state">
                     <p className="muted">Hali formalar yoʻq</p>
-                    <button className="button" onClick={() => setModal({ type: 'edit' })}>
-                        <Plus size={16} /> Forma yaratish
-                    </button>
                 </div>
             ) : (
                 <div className="table-wrap">
